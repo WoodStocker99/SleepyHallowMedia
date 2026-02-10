@@ -4,7 +4,7 @@ Subtitle: A Not So short subtitle explainging this article and its thoughts and 
 Author: Jane Good Reporter
 Thumbnail: thumbnails/Untitled.jpg
 Date: 2026-01-20
-Tag: Politics
+Tags: Local
 ---
 
 This is the first paragraph of the article body. It should appear on article.html.
