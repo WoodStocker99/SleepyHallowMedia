@@ -1,447 +1,271 @@
-// script.js — Sleepy Hollow Media
-// Manifest-driven content + article hero + reading time + share + next/prev
+// script.js — Sleepy Hollow Media (Magazine)
+// Builds lead story, top stories, latest grid, sidebar latest, trending topics.
+// Keeps your article rendering and newsletters list. Safe markdown + DOMPurify remain.
 
-// ---- Config & Paths ----
 const MANIFEST = 'newsletters/index.json';
 const NEWS_DIR = 'newsletters/';
 const DEFAULT_THUMB = 'thumbnails/placeholder.png';
-const LATEST_LIMIT = 8; // homepage grid
+const HOMEPAGE_LATEST_LIMIT = 12;
+const SIDEBAR_LATEST_LIMIT = 8;
 
-// ---- Utils ----
-function escapeHtml(str) {
-  if (str == null) return '';
-  return String(str)
-    .replace(/&/g, '&')
-    .replace(/</g, '<')
-    .replace(/>/g, '>')
-    .replace(/"/g, '"')
-    .replace(/'/g, '&#39;');
-}
-function sanitizeFilename(filename) {
-  if (!filename || typeof filename !== 'string') return '';
-  const normalized = filename.replace(/\\/g, '/').trim();
-  if (
-    normalized.includes('..') ||
-    normalized.startsWith('/') ||
-    normalized.startsWith('http:') ||
-    normalized.startsWith('https:')
-  ) {
-    return '';
-  }
+// ---------- Utilities ----------
+function escapeHtml(str){ if(str==null) return ''; return String(str).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"').replace(/'/g,'&#39;'); }
+function sanitizeFilename(filename){
+  if(!filename || typeof filename!=='string') return '';
+  const normalized = filename.replace(/\\/g,'/').trim();
+  if(normalized.includes('..') || normalized.startsWith('/') || normalized.startsWith('http:') || normalized.startsWith('https:')) return '';
   return normalized || '';
 }
-function parseFrontmatter(text) {
-  let src = String(text ?? '')
-    .replace(/\r/g, '')
-    .replace(/^\uFEFF/, '')
-    .replace(/^\s+/, '');
-  if (!src.startsWith('---\n') && src !== '---') {
-    return { meta: {}, body: src.trim() };
+function parseFrontmatter(text){
+  let src = String(text??'').replace(/\r/g,'').replace(/^\uFEFF/,'').replace(/^\s+/, '');
+  if(!src.startsWith('---\n') && src!=='---'){ return {meta:{}, body:src.trim()}; }
+  const lines = src.split('\n'); const meta={}; let i=1;
+  for(; i<lines.length; i++){ const line=lines[i].trim(); if(line==='---'){ i++; break; } if(!line) continue;
+    const m=line.match(/^([^:]+)\s*:\s*(.*)$/); if(m) meta[m[1].trim()]=m[2].trim(); }
+  const body = lines.slice(i).join('\n').trim(); return {meta, body};
+}
+async function loadManifest(){
+  try{ const res=await fetch(MANIFEST,{cache:'no-store'}); if(!res.ok) throw new Error('No manifest'); const data=await res.json(); return Array.isArray(data)?data.map(sanitizeFilename).filter(Boolean):[]; }
+  catch(e){ console.warn('Manifest error', e); return []; }
+}
+async function loadNewsletter(filename){
+  const f=sanitizeFilename(filename); if(!f) throw new Error('Bad filename');
+  const res=await fetch(`${NEWS_DIR}${f}`, {cache:'no-store'}); if(!res.ok) throw new Error('Fetch fail');
+  return parseFrontmatter(await res.text());
+}
+function formatDate(d){ if(!d) return ''; const x=new Date(d); return Number.isNaN(x.getTime())?'':x.toLocaleDateString(); }
+function resolveThumbPath(t){ if(!t) return DEFAULT_THUMB; const s=String(t).trim(); if(/^(https?:)?\/\//i.test(s) || s.startsWith('/') || s.startsWith('thumbnails/') || s.startsWith('newsletters/')) return s; return s; }
+function isTruthy(v){ if(v===true) return true; if(typeof v==='string') return /^(true|yes|1)$/i.test(v.trim()); if(typeof v==='number') return v!==0; return false; }
+
+function renderMarkdownSafe(text){
+  if(typeof window!=='undefined' && window.marked && window.DOMPurify){
+    const raw = window.marked.parse(String(text??''));
+    return window.DOMPurify.sanitize(raw, { ALLOWED_ATTR: ['href','src','alt','title','class'] });
   }
-  const lines = src.split('\n');
-  const meta = {};
-  let i = 1;
-  for (; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (line === '---') { i++; break; }
-    if (!line) continue;
-    const m = line.match(/^([^:]+)\s*:\s*(.*)$/);
-    if (m) meta[m[1].trim()] = m[2].trim();
-  }
-  const body = lines.slice(i).join('\n').trim();
-  return { meta, body };
-}
-async function loadManifest() {
-  try {
-    const res = await fetch(MANIFEST, { cache: 'no-store' });
-    if (!res.ok) throw new Error(`Manifest not found: ${MANIFEST}`);
-    const data = await res.json();
-    if (!Array.isArray(data)) return [];
-    return data.map(sanitizeFilename).filter(Boolean);
-  } catch (err) {
-    console.warn('Could not load manifest:', err);
-    return [];
-  }
-}
-async function loadNewsletter(filename) {
-  const sanitized = sanitizeFilename(filename);
-  if (!sanitized) throw new Error('Invalid filename');
-  const path = `${NEWS_DIR}${sanitized}`;
-  const res = await fetch(path, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`Failed to fetch ${path}`);
-  const text = await res.text();
-  return parseFrontmatter(text);
-}
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return '';
-  return d.toLocaleDateString();
-}
-function renderParagraphs(text) {
-  const paragraphs = String(text ?? '')
-    .split(/\n\s*\n/)
-    .map(p => p.trim())
-    .filter(Boolean);
-  return paragraphs.map(p => `<p>${escapeHtml(p).replace(/\n/g, '<br>')}</p>`).join('\n');
-}
-function renderMarkdownSafe(text) {
-  if (typeof window !== 'undefined' && window.marked && window.DOMPurify) {
-    const raw = window.marked.parse(String(text ?? ''));
-    return window.DOMPurify.sanitize(raw, {
-      ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'class'],
-    });
-  }
-  return renderParagraphs(text);
-}
-function resolveThumbPath(thumbValue) {
-  if (!thumbValue) return DEFAULT_THUMB;
-  const t = String(thumbValue).trim();
-  if (/^(https?:)?\/\//i.test(t)) return t;
-  if (t.startsWith('/')) return t;
-  if (t.startsWith('thumbnails/') || t.startsWith('newsletters/')) return t;
-  return t;
-}
-function isTruthy(val) {
-  if (val === true) return true;
-  if (typeof val === 'string') return /^(true|yes|1)$/i.test(val.trim());
-  if (typeof val === 'number') return val !== 0;
-  return false;
+  // Paragraph fallback
+  return String(text??'').split(/\n\s*\n/).map(p=>`<p>${escapeHtml(p.trim())}</p>`).join('');
 }
 
-// ---- UI helpers ----
-function markCurrentNav() {
-  const path = location.pathname.split('/').pop() || 'index.html';
-  const map = { 'index.html': 'home', 'newsletters.html': 'newsletters' };
-  const key = map[path];
-  if (!key) return;
-  document.querySelectorAll(`[data-nav="${key}"]`).forEach(a => {
-    a.setAttribute('aria-current', 'page');
+// ---------- Common: current nav + mobile ----------
+function markCurrentNav(){
+  const file=(location.pathname.split('/').pop()||'index.html').toLowerCase();
+  const map={ 'index.html':'home', 'newsletters.html':'newsletters' };
+  const key=map[file];
+  document.querySelectorAll(`[data-nav="${key}"]`).forEach(a=>a.setAttribute('aria-current','page'));
+}
+function initMobile(){
+  const btn=document.querySelector('.nav-toggle'); const menu=document.getElementById('mobile-menu');
+  if(btn && menu){ btn.addEventListener('click',()=>{ const open=menu.classList.toggle('active'); btn.setAttribute('aria-expanded', open?'true':'false'); }); }
+}
+
+// ---------- Data helpers ----------
+async function loadVisibleSorted(){
+  const manifest=await loadManifest(); if(!manifest.length) return [];
+  const items=(await Promise.all(manifest.map(async f=>{
+    try{ const {meta, body}=await loadNewsletter(f); return { file:f, meta, body }; }
+    catch{ return null; }
+  }))).filter(Boolean);
+  const visible=items.filter(r=>!isTruthy(r.meta.Hidden));
+  visible.sort((a,b)=>{
+    const ad=a.meta.Date?new Date(a.meta.Date):null; const bd=b.meta.Date?new Date(b.meta.Date):null;
+    const aOk=ad && !Number.isNaN(ad.getTime()); const bOk=bd && !Number.isNaN(bd.getTime());
+    if(aOk && bOk) return bd-ad; if(aOk) return -1; if(bOk) return 1; return b.file.localeCompare(a.file);
   });
-}
-function readingTimeFromText(text, wpm = 200) {
-  const words = String(text ?? '').trim().split(/\s+/).filter(Boolean).length;
-  const mins = Math.max(1, Math.round(words / wpm));
-  return `${mins} min read`;
+  return visible;
 }
 
-// ---- Cards for list/featured/grid ----
-function createCard(filename, meta) {
-  const el = document.createElement('article');
-  el.className = 'news-card';
-  el.dataset.file = filename;
-  el.style.cursor = 'pointer';
+// ---------- Home: Lead + Top stories ----------
+function leadCardTemplate(item){
+  const {file, meta}=item;
+  const title=meta.Title||file; const cat=meta.Category||''; const date=formatDate(meta.Date); const author=meta.Author||'Staff';
+  const img=resolveThumbPath(meta.Thumbnail);
+  return `
+    <a class="lead-bg" href="article.html?article=${encodeURIComponent(file)}" style="background-image:url('${encodeURI(img)}')"></a>
+    <div class="lead-body">
+      ${cat?`<span class="kicker">${escapeHtml(cat)}</span>`:''}
+      <h2 class="lead-title"><a href="article.html?article=${encodeURIComponent(file)}" style="color:#fff;text-decoration:none">${escapeHtml(title)}</a></h2>
+      <div class="lead-meta">${escapeHtml(date)}${date?' • ':''}${escapeHtml(author)}</div>
+    </div>
+  `;
+}
+function topCardTemplate(item){
+  const {file, meta}=item;
+  const title=meta.Title||file; const img=resolveThumbPath(meta.Thumbnail);
+  const date=formatDate(meta.Date); const author=meta.Author||'Staff';
+  return `
+    <a class="top-thumb" href="article.html?article=${encodeURIComponent(file)}" style="background-image:url('${encodeURI(img)}')"></a>
+    <div class="top-body">
+      <h3 class="top-title"><a href="article.html?article=${encodeURIComponent(file)}">${escapeHtml(title)}</a></h3>
+      <div class="top-meta">${escapeHtml(date)}${date?' • ':''}${escapeHtml(author)}</div>
+    </div>
+  `;
+}
+async function renderHome(){
+  const data=await loadVisibleSorted();
+  // Lead + top stories
+  const leadEl=document.getElementById('lead-story');
+  const topEl=document.getElementById('top-stories');
+  if(leadEl && data[0]) leadEl.innerHTML = leadCardTemplate(data[0]);
+  if(topEl){
+    topEl.innerHTML='';
+    for(const item of data.slice(1,5)){
+      const card=document.createElement('article');
+      card.className='top-card';
+      card.innerHTML=topCardTemplate(item);
+      topEl.appendChild(card);
+    }
+  }
+  // Latest grid
+  const latest=document.getElementById('latest-grid');
+  if(latest){
+    latest.innerHTML='';
+    for(const item of data.slice(5, 5+HOMEPAGE_LATEST_LIMIT)){
+      latest.appendChild(gridCard(item));
+    }
+  }
+  // Sidebar latest
+  const sList=document.getElementById('sidebar-latest');
+  if(sList){
+    sList.innerHTML='';
+    for(const item of data.slice(5, 5+SIDEBAR_LATEST_LIMIT)){
+      const li=document.createElement('li');
+      const date=formatDate(item.meta.Date);
+      li.innerHTML=`<a href="article.html?article=${encodeURIComponent(item.file)}">${escapeHtml(item.meta.Title||item.file)}</a>
+      <div class="muted" style="font-size:.85rem">${escapeHtml(date)}</div>`;
+      sList.appendChild(li);
+    }
+  }
+  // Trending topics (by Category frequency)
+  const trend=document.getElementById('trend-topics');
+  if(trend){
+    const counts=new Map();
+    for(const i of data){ if(i.meta.Category){ const k=i.meta.Category.trim(); counts.set(k,(counts.get(k)||0)+1); } }
+    const top=[...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k])=>k);
+    trend.innerHTML = top.map(k=>`<a href="newsletters.html?category=${encodeURIComponent(k)}">${escapeHtml(k)}</a>`).join('');
+  }
+}
 
-  const thumbEl = document.createElement('div');
-  thumbEl.className = 'news-thumb';
-  const thumbUrl = resolveThumbPath(meta.Thumbnail);
-  thumbEl.style.backgroundImage = `url("${encodeURI(thumbUrl)}")`;
-
-  const bodyEl = document.createElement('div');
-  bodyEl.className = 'news-body';
-
-  const metaEl = document.createElement('div');
-  metaEl.className = 'news-meta';
-  const date = formatDate(meta.Date);
-  const author = meta.Author || 'Staff';
-  metaEl.textContent = `${date}${date ? ' • ' : ''}${author}`;
-
-  const titleEl = document.createElement('h3');
-  titleEl.className = 'news-title';
-  titleEl.textContent = meta.Title || filename;
-
-  const subEl = document.createElement('p');
-  subEl.className = 'news-sub';
-  subEl.textContent = meta.Subtitle || '';
-
-  bodyEl.append(metaEl, titleEl, subEl);
-  el.append(thumbEl, bodyEl);
-  el.addEventListener('click', () => {
-    location.href = `article.html?article=${encodeURIComponent(filename)}`;
-  });
+// Cards used on grids
+function gridCard(item){
+  const {file, meta}=item;
+  const img=resolveThumbPath(meta.Thumbnail);
+  const title=meta.Title||file;
+  const date=formatDate(meta.Date); const author=meta.Author||'Staff';
+  const el=document.createElement('a');
+  el.className='card';
+  el.href=`article.html?article=${encodeURIComponent(file)}`;
+  el.innerHTML=`
+    <div class="card-img" style="background-image:url('${encodeURI(img)}')"></div>
+    <div class="card-body">
+      <h3 class="card-title">${escapeHtml(title)}</h3>
+      <div class="card-meta">${escapeHtml(date)}${date?' • ':''}${escapeHtml(author)}</div>
+      ${meta.Subtitle?`<p class="card-sub">${escapeHtml(meta.Subtitle)}</p>`:''}
+    </div>`;
   return el;
 }
-function createGridCard(filename, meta) {
-  const a = document.createElement('a');
-  a.className = 'card';
-  a.href = `article.html?article=${encodeURIComponent(filename)}`;
-  a.setAttribute('aria-label', meta.Title || filename);
 
-  const img = document.createElement('div');
-  img.className = 'card-img';
-  img.style.backgroundImage = `url("${encodeURI(resolveThumbPath(meta.Thumbnail))}")`;
+// ---------- Newsletters list page (optional category filter) ----------
+async function renderListPage(){
+  const container=document.getElementById('news-list'); if(!container) return;
+  const params=new URLSearchParams(location.search);
+  const activeCat=params.get('category')?.trim();
+  const data=await loadVisibleSorted();
+  const filtered = activeCat ? data.filter(i=>(i.meta.Category||'').trim().toLowerCase()===activeCat.toLowerCase()) : data;
 
-  const body = document.createElement('div');
-  body.className = 'card-body';
+  const info=document.getElementById('active-filter');
+  if(info) info.textContent = activeCat ? `Filtering by category: ${activeCat}` : '';
 
-  const metaLine = document.createElement('div');
-  metaLine.className = 'card-meta';
-  const date = formatDate(meta.Date);
-  const author = meta.Author || 'Staff';
-  metaLine.textContent = `${date}${date ? ' • ' : ''}${author}`;
-
-  const title = document.createElement('h3');
-  title.className = 'card-title';
-  title.textContent = meta.Title || filename;
-
-  const sub = document.createElement('p');
-  sub.className = 'card-sub';
-  sub.textContent = meta.Subtitle || '';
-
-  if (meta.Category) {
-    const chip = document.createElement('span');
-    chip.className = 'chip';
-    chip.textContent = meta.Category;
-    body.appendChild(chip);
+  container.innerHTML='';
+  for(const item of filtered){
+    container.appendChild(gridCard(item));
   }
-
-  body.append(metaLine, title, sub);
-  a.append(img, body);
-  return a;
+  if(filtered.length===0){
+    container.innerHTML = `<p class="muted">No items found${activeCat?` for “${escapeHtml(activeCat)}”`:''}.</p>`;
+  }
 }
 
-// ---- Homepage Featured ----
-async function initFeaturedArticle() {
-  const featuredEl = document.getElementById('featured-article');
-  if (!featuredEl) return;
-  const manifest = await loadManifest();
-  if (!manifest.length) {
-    featuredEl.innerHTML = `<p class="news-meta">No newsletters found.</p>`;
-    return;
-  }
-  const results = (await Promise.all(
-    manifest.map(async (f) => {
-      try { const parsed = await loadNewsletter(f); return { file: f, meta: parsed.meta }; }
-      catch (e) { console.warn('Skipping', f, e); return null; }
-    })
-  )).filter(Boolean);
-
-  const visible = results.filter(r => !isTruthy(r.meta.Hidden));
-  if (!visible.length) {
-    featuredEl.innerHTML = `<p class="news-meta">No visible newsletters found.</p>`;
-    return;
-  }
-  visible.sort((a, b) => {
-    const ad = a.meta.Date ? new Date(a.meta.Date) : null;
-    const bd = b.meta.Date ? new Date(b.meta.Date) : null;
-    const aOk = ad && !Number.isNaN(ad.getTime());
-    const bOk = bd && !Number.isNaN(bd.getTime());
-    if (aOk && bOk) return bd - ad;
-    if (aOk) return -1;
-    if (bOk) return 1;
-    return b.file.localeCompare(a.file);
-  });
-  featuredEl.innerHTML = '';
-  featuredEl.appendChild(createCard(visible[0].file, visible[0].meta));
+// ---------- Article page ----------
+function readingTimeFromText(text, wpm=200){
+  const words=String(text??'').trim().split(/\s+/).filter(Boolean).length;
+  return `${Math.max(1, Math.round(words/wpm))} min read`;
 }
+function populateArticleHero(meta){
+  const bg=document.querySelector('.a-hero-bg');
+  const titleEl=document.getElementById('article-title');
+  const subEl=document.getElementById('article-subtitle');
+  const metaEl=document.getElementById('article-meta');
+  const catEl=document.getElementById('article-category');
 
-// ---- Homepage Latest grid ----
-async function initLatestGrid() {
-  const grid = document.getElementById('latest-grid');
-  if (!grid) return;
+  const title=meta.Title||'Untitled';
+  titleEl.textContent=title;
+  subEl.textContent=meta.Subtitle||'';
+  const date=formatDate(meta.Date); const author=meta.Author||'Staff';
+  metaEl.textContent=`${date}${date?' • ':''}${author}`;
 
-  const manifest = await loadManifest();
-  if (!manifest.length) {
-    grid.innerHTML = `<p class="news-meta">No newsletters found.</p>`;
-    return;
-  }
+  const cat=meta.Category?.trim(); if(cat){ catEl.hidden=false; catEl.textContent=cat; } else { catEl.hidden=true; }
 
-  const results = (await Promise.all(
-    manifest.map(async (f) => {
-      try { const parsed = await loadNewsletter(f); return { file: f, meta: parsed.meta }; }
-      catch (e) { console.warn('Skipping', f, e); return null; }
-    })
-  )).filter(Boolean);
-
-  const visible = results.filter(r => !isTruthy(r.meta.Hidden));
-  if (!visible.length) {
-    grid.innerHTML = `<p class="news-meta">No visible newsletters.</p>`;
-    return;
-  }
-
-  visible.sort((a, b) => {
-    const ad = a.meta.Date ? new Date(a.meta.Date) : null;
-    const bd = b.meta.Date ? new Date(b.meta.Date) : null;
-    const aOk = ad && !Number.isNaN(ad.getTime());
-    const bOk = bd && !Number.isNaN(bd.getTime());
-    if (aOk && bOk) return bd - ad;
-    if (aOk) return -1;
-    if (bOk) return 1;
-    return b.file.localeCompare(a.file);
-  });
-
-  const top = visible.slice(0, LATEST_LIMIT);
-  grid.innerHTML = '';
-  for (const r of top) grid.appendChild(createGridCard(r.file, r.meta));
+  const img=resolveThumbPath(meta.Thumbnail);
+  if(bg) bg.style.backgroundImage=`url("${encodeURI(img)}")`;
 }
+function buildShareLinks(title){
+  const url=location.href;
+  const email=document.querySelector('[data-share="email"]');
+  const reddit=document.querySelector('[data-share="reddit"]');
+  const x=document.querySelector('[data-share="x"]');
+  const copy=document.querySelector('[data-share="copy"]');
+  const fb=document.getElementById('share-feedback');
 
-// ---- Newsletters list page ----
-async function initListPage() {
-  const newsListEl = document.getElementById('news-list');
-  if (!newsListEl) return;
-  const manifest = await loadManifest();
-  if (!manifest.length) {
-    newsListEl.innerHTML = `<p class="news-meta">No newsletters found.</p>`;
-    return;
-  }
-  const results = (await Promise.all(
-    manifest.map(async (f) => {
-      try { const parsed = await loadNewsletter(f); return { file: f, meta: parsed.meta }; }
-      catch (e) { console.warn('Skipping', f, e); return null; }
-    })
-  )).filter(Boolean);
+  if(email) email.href=`mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`;
+  if(reddit) reddit.href=`https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
+  if(x) x.href=`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
 
-  const visible = results.filter(r => !isTruthy(r.meta.Hidden));
-  if (!visible.length) {
-    newsListEl.innerHTML = `<p class="news-meta">No newsletters to display.</p>`;
-    return;
-  }
-  visible.sort((a, b) => {
-    if (a.meta.Date && b.meta.Date) return new Date(b.meta.Date) - new Date(a.meta.Date);
-    return a.file.localeCompare(b.file);
-  });
-  for (const r of visible) newsListEl.appendChild(createCard(r.file, r.meta));
-}
-
-// ---- Article page ----
-function populateArticleHero(meta) {
-  const hero = document.getElementById('article-hero');
-  const bg = document.querySelector('.article-hero-bg');
-  const titleEl = document.getElementById('article-title');
-  const subEl = document.getElementById('article-subtitle');
-  const metaEl = document.getElementById('article-meta');
-  const catEl = document.getElementById('article-category');
-
-  const title = meta.Title || 'Untitled';
-  const subtitle = meta.Subtitle || '';
-  const date = formatDate(meta.Date);
-  const author = meta.Author || 'Staff';
-  const cat = meta.Category || '';
-
-  titleEl.textContent = title;
-  subEl.textContent = subtitle;
-  metaEl.textContent = `${date}${date ? ' • ' : ''}${author}`;
-  if (cat) {
-    catEl.textContent = cat;
-    catEl.hidden = false;
-  } else {
-    catEl.hidden = true;
-  }
-
-  const thumbUrl = resolveThumbPath(meta.Thumbnail);
-  bg.style.backgroundImage = `url("${encodeURI(thumbUrl)}")`;
-}
-function buildShareLinks(title) {
-  const url = location.href;
-  const email = document.querySelector('[data-share="email"]');
-  const reddit = document.querySelector('[data-share="reddit"]');
-  const x = document.querySelector('[data-share="x"]');
-  const copyBtn = document.querySelector('[data-share="copy"]');
-  const feedback = document.getElementById('share-feedback');
-
-  if (email) email.href = `mailto:?subject=${encodeURIComponent(title)}&body=${encodeURIComponent(url)}`;
-  if (reddit) reddit.href = `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
-  if (x) x.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
-
-  if (copyBtn) {
-    copyBtn.addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(url);
-        if (feedback) { feedback.textContent = 'Link copied!'; setTimeout(()=>feedback.textContent='', 1500); }
-      } catch {
-        if (feedback) { feedback.textContent = 'Could not copy.'; setTimeout(()=>feedback.textContent='', 1500); }
-      }
+  if(copy){
+    copy.addEventListener('click', async ()=>{
+      try{ await navigator.clipboard.writeText(url); if(fb){ fb.textContent='Link copied!'; setTimeout(()=>fb.textContent='',1500); } }
+      catch{ if(fb){ fb.textContent='Copy failed.'; setTimeout(()=>fb.textContent='',1500); } }
     });
   }
 }
-function setNextPrev(manifest, currentFile) {
-  const prevA = document.getElementById('prev-article');
-  const nextA = document.getElementById('next-article');
-  if (!prevA || !nextA) return;
-
-  const idx = manifest.indexOf(currentFile);
-  if (idx > 0) {
-    const prevFile = manifest[idx - 1];
-    prevA.href = `article.html?article=${encodeURIComponent(prevFile)}`;
-    prevA.hidden = false;
-  }
-  if (idx >= 0 && idx < manifest.length - 1) {
-    const nextFile = manifest[idx + 1];
-    nextA.href = `article.html?article=${encodeURIComponent(nextFile)}`;
-    nextA.hidden = false;
-  }
-}
-function renderArticle(container, filename, meta, body) {
-  // Assemble hero first
+function renderArticle(container, filename, meta, body){
   populateArticleHero(meta);
+  const reading=readingTimeFromText(body, 200);
+  const rt=document.getElementById('article-reading-time'); if(rt) rt.textContent=` • ${reading}`;
 
-  // Compute reading time from *render-stripped* text
-  const reading = readingTimeFromText(body, 200);
-  const rtEl = document.getElementById('article-reading-time');
-  if (rtEl) rtEl.textContent = ` • ${reading}`;
+  const bodyHtml=renderMarkdownSafe(body);
+  const date=formatDate(meta.Date); const author=meta.Author||'Staff';
+  const metaLine=`${date}${date?' • ':''}${author}`;
 
-  // Render body with Markdown (sanitized)
-  const bodyHtml = renderMarkdownSafe(body);
-
-  // Inject into article content
-  const subtitle = meta.Subtitle || '';
-  const date = formatDate(meta.Date);
-  const author = meta.Author || 'Staff';
-  const metaLine = `${date}${date ? ' • ' : ''}${author}`;
-
-  // We hide the first inline image (hero) via CSS, so body starts naturally
   container.innerHTML = `
-    ${subtitle ? `<p class="lead">${escapeHtml(subtitle)}</p>` : ''}
-    <p class="news-meta">${escapeHtml(metaLine)} • ${escapeHtml(reading)}</p>
-    <div class="article-body">${bodyHtml}</div>
-  `;
-
-  document.title = `${meta.Title || filename} — Sleepy Hollow Media`;
+    ${meta.Subtitle?`<p class="muted" style="margin:.2rem 0 1rem 0">${escapeHtml(meta.Subtitle)}</p>`:''}
+    <p class="muted" style="margin:.2rem 0 1rem 0">${escapeHtml(metaLine)} • ${escapeHtml(reading)}</p>
+    <div>${bodyHtml}</div>`;
+  document.title = `${meta.Title||filename} — Sleepy Hollow Media`;
 }
-async function initArticlePage() {
-  const content = document.getElementById('article-content');
-  if (!content) return;
-
-  const params = new URLSearchParams(window.location.search);
-  const file = sanitizeFilename(params.get('article'));
-  if (!file) {
-    content.innerHTML = `<p class="news-meta">Missing or invalid article parameter.</p>`;
-    return;
-  }
-
-  try {
-    const parsed = await loadNewsletter(file);
+async function initArticlePage(){
+  const content=document.getElementById('article-content'); if(!content) return;
+  const params=new URLSearchParams(location.search);
+  const file=sanitizeFilename(params.get('article'));
+  if(!file){ content.innerHTML='<p class="muted">Missing or invalid article parameter.</p>'; return; }
+  try{
+    const parsed=await loadNewsletter(file);
     renderArticle(content, file, parsed.meta, parsed.body);
+    buildShareLinks(parsed.meta.Title||file);
 
-    // Share linkss
-    buildShareLinks(parsed.meta.Title || file);
-
-    // Next/Prev: we want filename order DESC by date (newest last? depends).
-    // Simpler: use manifest natural order and link neighbors.
-    const manifest = await loadManifest();
-    setNextPrev(manifest, file);
-  } catch (e) {
-    console.error(e);
-    content.innerHTML = `<p class="news-meta">Could not load article: ${escapeHtml(file)}</p>`;
-  }
+    // Next/Prev using manifest order
+    const manifest=await loadManifest();
+    const idx=manifest.indexOf(file);
+    const prev=document.getElementById('prev-article');
+    const next=document.getElementById('next-article');
+    if(prev && idx>0){ prev.href=`article.html?article=${encodeURIComponent(manifest[idx-1])}`; prev.hidden=false; }
+    if(next && idx>=0 && idx<manifest.length-1){ next.href=`article.html?article=${encodeURIComponent(manifest[idx+1])}`; next.hidden=false; }
+  }catch(e){ console.error(e); content.innerHTML='<p class="muted">Could not load this article.</p>'; }
 }
 
-// ---- Boot ----
-document.addEventListener('DOMContentLoaded', async () => {
-  // Header interactions
-  const toggle = document.querySelector('.sh-nav-toggle');
-  const menu = document.getElementById('sh-mobile-menu');
-  if (toggle && menu) {
-    toggle.addEventListener('click', () => {
-      const isOpen = menu.classList.toggle('active');
-      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-    });
-  }
+// ---------- Boot ----------
+document.addEventListener('DOMContentLoaded', async ()=>{
+  initMobile();
   markCurrentNav();
-
-  // Pages
-  await initFeaturedArticle();
-  await initLatestGrid();
-  await initListPage();
+  await renderHome();
+  await renderListPage();
   await initArticlePage();
 });

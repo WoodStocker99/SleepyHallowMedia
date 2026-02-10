@@ -3,96 +3,129 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sleepy Hollow Media — Home</title>
+  <title>Sleepy Hollow Media — Independent Reporting</title>
 
-  <!-- Optional favicon and fonts -->
   <link rel="icon" href="/favicon.ico">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="styles.css">
+  <!-- Optional Google Fonts; you can self-host later -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="sh-header" role="banner">
-    <div class="sh-container sh-header-row">
-      <a href="index.html" class="sh-logo">
-        <img src="assets/logo.png" alt="Sleepy Hollow Media" class="sh-logo-img">
-        <span class="sh-site-title">Sleepy Hollow Media</span>
+  <!-- ===== Top utility / trending strip ===== -->
+  <div class="topbar" aria-label="Site tools">
+    <div class="wrap">
+      <div class="topbar-left">
+        <a href="newsletters.html" class="top-link">Latest</a>
+        <a href="newsletters.html?category=Opinion" class="top-link">Opinion</a>
+        <a href="newsletters.html?category=Local" class="top-link">Local</a>
+      </div>
+      <div class="topbar-right">
+        <a href="#" class="top-link top-donate" aria-disabled="true" title="Coming soon">Donate</a>
+        <a href="#" class="top-link" aria-disabled="true" title="Coming soon">Subscribe</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Header / primary nav ===== -->
+  <header class="site-header" role="banner">
+    <div class="wrap header-row">
+      <a class="brand" href="index.html">
+        <img src="assets/logo.png" alt="" class="brand-mark" />
+        <span class="brand-name">Sleepy Hollow Media</span>
       </a>
 
-      <nav class="sh-nav" aria-label="Main Navigation">
-        <a href="index.html" data-nav="home">Home</a>
-        <a href="newsletters.html" data-nav="newsletters">Newsletters</a>
-        <a href="#" class="sh-nav-disabled" aria-disabled="true">Categories</a>
-        <a href="#" class="sh-nav-disabled" aria-disabled="true">Search</a>
+      <nav class="primary-nav" aria-label="Primary">
+        <a data-nav="home" href="index.html">Home</a>
+        <a data-nav="newsletters" href="newsletters.html">Newsletters</a>
+        <a href="newsletters.html?category=Politics">Politics</a>
+        <a href="newsletters.html?category=Culture">Culture</a>
+        <a href="newsletters.html?category=Opinion">Opinion</a>
       </nav>
 
-      <button class="sh-nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="sh-mobile-menu">☰</button>
+      <button class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">☰</button>
     </div>
 
-    <div id="sh-mobile-menu" class="sh-mobile-menu" role="navigation" aria-label="Mobile Navigation">
-      <a href="index.html">Home</a>
-      <a href="newsletters.html">Newsletters</a>
-      <a href="#" class="sh-nav-disabled" aria-disabled="true">Categories (soon)</a>
-      <a href="#" class="sh-nav-disabled" aria-disabled="true">Search (soon)</a>
+    <div id="mobile-menu" class="mobile-menu" role="navigation" aria-label="Mobile">
+      <a data-nav="home" href="index.html">Home</a>
+      <a data-nav="newsletters" href="newsletters.html">Newsletters</a>
+      <a href="newsletters.html?category=Politics">Politics</a>
+      <a href="newsletters.html?category=Culture">Culture</a>
+      <a href="newsletters.html?category=Opinion">Opinion</a>
     </div>
   </header>
 
+  <!-- ===== Trending topics like a magazine ===== -->
+  <aside class="trending" aria-label="Trending topics">
+    <div class="wrap">
+      <strong class="trend-label">Trending:</strong>
+      <div id="trend-topics" class="trend-tags"><!-- filled by JS --></div>
+    </div>
+  </aside>
 
-  <!-- MAIN -->
-  <main id="main">
+  <!-- ===== Magazine front page ===== -->
+  <main id="main" class="wrap front">
 
-    <!-- HERO (light, no CTA button) -->
-    <section class="sh-hero">
-      <div class="sh-container sh-hero-inner">
-        <div class="sh-hero-kicker">Independent • Curated • Community</div>
-        <h1 class="sh-hero-title">Stories from the Hollow</h1>
-        <p class="sh-hero-sub">
-          Daily bulletins, special reports, and thoughtful commentary — delivered with calm twilight clarity.
-        </p>
-      </div>
-
-      <div class="sh-hero-fog" aria-hidden="true"></div>
-      <div class="sh-hero-moon" aria-hidden="true"></div>
-      <div class="sh-hero-ridge" aria-hidden="true"></div>
+    <!-- Lead story -->
+    <section class="lead-grid" aria-label="Lead story">
+      <article id="lead-story" class="lead-card"><!-- filled by JS --></article>
+      <div id="top-stories" class="top-stories"><!-- filled by JS --></div>
     </section>
 
+    <!-- Latest + Sidebar -->
+    <section class="content-grid" aria-label="Latest">
+      <div class="main-col">
+        <h2 class="h-section">Latest</h2>
+        <div id="latest-grid" class="cards-grid"><!-- filled by JS --></div>
+      </div>
 
-    <!-- FEATURED -->
-    <section class="sh-section">
-      <div class="sh-container">
-        <div class="sh-section-head">
-          <h2>Featured</h2>
-          <a class="sh-link" href="newsletters.html">View all</a>
+      <aside class="side-col">
+        <div class="side-panel">
+          <h3 class="h-side">Latest Headlines</h3>
+          <ul id="sidebar-latest" class="side-list"><!-- filled by JS --></ul>
         </div>
-        <div id="featured-article" class="sh-featured"></div>
-      </div>
-    </section>
 
-
-    <!-- LATEST (no button) -->
-    <section class="sh-section">
-      <div class="sh-container">
-        <h2 class="sh-section-title">Latest</h2>
-        <div id="latest-grid" class="sh-grid"></div>
-      </div>
+        <div class="side-panel signup" role="complementary" aria-label="Newsletter signup">
+          <h3 class="h-side">Never miss a story</h3>
+          <p>Get the latest in your inbox. No spam, unsubscribe anytime.</p>
+          <form onsubmit="return false" aria-disabled="true" title="Wire up to your provider when ready">
+            <input type="email" placeholder="Email address" aria-label="Email address" disabled>
+            <button class="btn" disabled>Subscribe</button>
+          </form>
+          <small class="muted">Coming soon</small>
+        </div>
+      </aside>
     </section>
 
   </main>
 
-  <!-- FOOTER -->
-  <footer class="site-footer">
-    <div class="sh-container">
-      <small>© <span id="year"></span> Sleepy Hollow Media</small>
+  <footer class="site-footer" id="footer">
+    <div class="wrap footer-grid">
+      <div>
+        <a class="brand is-footer" href="index.html">
+          <img src="assets/logo.png" alt="" class="brand-mark" />
+          <span class="brand-name">Sleepy Hollow Media</span>
+        </a>
+        <p class="muted">Independent reporting from the Hollow.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="newsletters.html">Latest</a>
+        <a href="#" aria-disabled="true">Donate</a>
+        <a href="#" aria-disabled="true">Subscribe</a>
+        <a href="newsletters.html?category=Politics">Politics</a>
+        <a href="newsletters.html?category=Culture">Culture</a>
+        <a href="newsletters.html?category=Opinion">Opinion</a>
+      </nav>
+      <div class="copy muted">© <span id="year"></span> Sleepy Hollow Media</div>
     </div>
   </footer>
 
-  <!-- Markdown & Sanitizer -->
+  <!-- Markdown + sanitizer (as before) -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js" crossorigin="anonymous"></script>
-
-  <script src="script.js"></script>
+  <script src="script.js" type="module"></script>
   <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>
