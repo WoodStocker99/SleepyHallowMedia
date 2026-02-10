@@ -7,8 +7,8 @@
   --ink: #0e1a2a;
   --muted: #6c7890;
   --border: #e7e9ef;
-  --accent: #0f3e56;      /* pairs with logo navy */
-  --accent-2: #d48c45;    /* warm secondary accent */
+  --accent: #0f3e56;
+  --accent-2: #d48c45;
   --wrap: 1200px;
   --radius: 12px;
   --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
@@ -101,9 +101,9 @@ img{ display:block; max-width:100%; height:auto; }
   position:relative; min-height:320px; background:#dfe8f1; border-radius:var(--radius); overflow:hidden;
   box-shadow: var(--shadow-md); display:grid; align-content:end;
 }
-.lead-bg{ position:absolute; inset:0; object-fit:cover; width:100%; height:100%; }
 .lead-card::after{ content:""; position:absolute; inset:0;
   background: linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.55) 100%); }
+.lead-bg{ position:absolute; inset:0; object-fit:cover; width:100%; height:100%; }
 .lead-body{ position:relative; color:#fff; padding: 1rem 1.1rem; }
 .kicker{ display:inline-block; padding:.18rem .55rem; border-radius:999px; background:#e9d6be; color:#0e1a2a; font-weight:800; font-size:.8rem; margin-bottom:.5rem; }
 .lead-title{ font: 700 var(--h1) "Playfair Display", Georgia, serif; margin:.2rem 0 .4rem; }
@@ -162,7 +162,7 @@ img{ display:block; max-width:100%; height:auto; }
   position:relative; min-height:240px; background:#eaf2f8; display:grid; align-content:end;
   border-bottom:1px solid var(--border);
 }
-.a-hero-bg{ position:absolute; inset:0; object-fit:cover; width:100%; height:100%; filter:brightness(.85); }
+.a-hero-bg{ position:absolute; inset:0; background-size:cover; background-position:center; }
 .a-hero::after{ content:""; position:absolute; inset:0; background: linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.55) 100%); }
 .a-hero-inner{ position:relative; color:#fff; padding: 1.2rem 0 1.4rem; }
 .a-kicker{ display:inline-block; padding:.18rem .55rem; border-radius:999px; background:#ffdba8; color:#0e1a2a; font-weight:800; font-size:.8rem; margin-bottom:.6rem; }
@@ -182,17 +182,18 @@ img{ display:block; max-width:100%; height:auto; }
 figure{ margin:1.1rem 0; }
 figcaption{ color:var(--muted); font-size:.9rem; margin-top:.3rem; }
 
-/* Share + Prev/Next */
+/* Share */
 .share-bar{ display:flex; gap:.5rem; flex-wrap:wrap; margin:.6rem 0 1rem; }
 .share-btn{ display:inline-block; padding:.45rem .8rem; border-radius:999px; font-weight:700; background:#eaf2f8; color:#0f3e56; border:1px solid #d8e6f0; }
-.article-nav{ display:flex; justify-content:space-between; gap:1rem; margin:1rem 0 0; }
-.article-nav-link{ display:inline-block; padding:.5rem .85rem; border-radius:8px; background:#eaf2f8; color:#0f3e56; border:1px solid #d8e6f0; }
 
-/* ---------- Footer ---------- */
+/* Footer */
 .site-footer{ margin-top:2rem; padding:1.2rem 0; background:var(--surface); border-top:1px solid var(--border); }
 .footer-grid{ display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
 .footer-links{ display:flex; gap:1rem; flex-wrap:wrap; }
 
-/* ---------- Utilities ---------- */
-.sr-only{ position:absolute!important; height:1px; width:1px; overflow:hidden; clip:rect(1px,1px,1px,1px); white-space:nowrap; }
-[aria-disabled="true"], .disabled{ opacity:.6; pointer-events:none; }
+/* ---------- Utility: make an <a> cover its parent card ---------- */
+.stretched-link{
+  position:absolute; inset:0; z-index:2; /* sits above image & gradient, below text focus outlines */
+  color: transparent; /* avoid visible text if any */
+}
+.stretched-link:focus{ outline: 2px solid #fff; outline-offset: -2px; }

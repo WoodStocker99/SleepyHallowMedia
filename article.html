@@ -5,8 +5,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sleepy Hollow Media — Article</title>
-  <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body data-page="article">
@@ -15,13 +14,13 @@
 
   <header class="site-header" role="banner">
     <div class="wrap header-row">
-      <a class="brand" href="index.html" aria-label="Sleepy Hollow Media home">
-        <img class="brand-mark" src="assets/logo.png" alt="" width="34" height="34">
+      <a class="brand" href="index.html">
+        <img class="brand-mark" src="assets/logo.png" alt="" />
         <span class="brand-name">Sleepy Hollow Media</span>
       </a>
       <nav class="primary-nav" aria-label="Primary">
-        <a data-nav="home" href="index.html">Home</a>
-        <a data-nav="newsletters" href="newsletters.html">Newsletters</a>
+        <a href="index.html" data-nav="home">Home</a>
+        <a href="newsletters.html" data-nav="newsletters">Newsletters</a>
         <a href="newsletters.html?category=Politics">Politics</a>
         <a href="newsletters.html?category=Culture">Culture</a>
         <a href="newsletters.html?category=Opinion">Opinion</a>
@@ -29,8 +28,8 @@
       <button class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">☰</button>
     </div>
     <nav id="mobile-menu" class="mobile-menu" aria-label="Mobile">
-      <a data-nav="home" href="index.html">Home</a>
-      <a data-nav="newsletters" href="newsletters.html">Newsletters</a>
+      <a href="index.html" data-nav="home">Home</a>
+      <a href="newsletters.html" data-nav="newsletters">Newsletters</a>
       <a href="newsletters.html?category=Politics">Politics</a>
       <a href="newsletters.html?category=Culture">Culture</a>
       <a href="newsletters.html?category=Opinion">Opinion</a>
@@ -61,11 +60,6 @@
       <a class="share-btn" data-share="x" target="_blank" rel="noopener">X</a>
       <span id="share-feedback" class="share-feedback" role="status" aria-live="polite"></span>
     </aside>
-
-    <nav class="article-nav" aria-label="Article navigation">
-      <a id="prev-article" class="article-nav-link" hidden>← Previous</a>
-      <a id="next-article" class="article-nav-link" hidden>Next →</a>
-    </nav>
   </main>
 
   <footer class="site-footer">
@@ -80,4 +74,3 @@
   <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>
-``
