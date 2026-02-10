@@ -1,10 +1,4 @@
-// Sleepy Hollow Media — Magazine Script (THUMBNAIL FIX)
-// - Client-side search (title/subtitle/author/category/tags/body snippet)
-// - Category filter + chips
-// - Trending topics (by category frequency)
-// - Magazine homepage sections
-// - Light article hero + share + prev/next
-// - Keeps manifest/frontmatter loaders + safe Markdown (DOMPurify)
+// Sleepy Hollow Media — Magazine Script (FIXED LINKS + THUMBNAILS + ARTICLE HERO)
 
 // ---- Config ----
 const MANIFEST = 'newsletters/index.json';
@@ -188,7 +182,7 @@ function searchItems(items, query){
   return ranked.map(x => x.it);
 }
 
-// ---- Homepage builders (FIXED IMG TAGS) ----
+// ---- Homepage builders (correct <a> and <img>) ----
 function leadCardHTML(item){
   const { file, meta } = item;
   const title = meta.Title || file;
@@ -196,6 +190,7 @@ function leadCardHTML(item){
   const date = formatDate(meta.Date);
   const author = meta.Author || 'Staff';
   const img = resolveThumbPath(meta.Thumbnail);
+
   return `
     <a class="lead-link" href="article.html?article=${encodeURIComponent(file)}" aria-label="${escapeHtml(title)}">
       <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
@@ -212,8 +207,9 @@ function topCardHTML(item){
   const img = resolveThumbPath(meta.Thumbnail);
   const date = formatDate(meta.Date);
   const author = meta.Author || 'Staff';
+
   return `
-    <a class="top-media" href="article.html?article=${encodeURIComponent(file)}" aria-label="${escapeHtml(title)}">
+    <a class="top-thumb-link" href="article.html?article=${encodeURIComponent(file)}" aria-label="${escapeHtml(title)}">
       <img class="top-thumb" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
     </a>
     <div class="top-body">
@@ -230,9 +226,12 @@ function gridCard(item){
   const chip = meta.Category ? `<span class="chip">${escapeHtml(meta.Category)}</span>` : '';
   const tags = (meta._tags || []).slice(0,2).map(t=>`<span class="chip" title="Tag">${escapeHtml(t)}</span>`).join('');
   const sub = meta.Subtitle ? `<p class="card-sub">${escapeHtml(meta.Subtitle)}</p>` : '';
+
   const a = document.createElement('a');
   a.className = 'card';
   a.href = `article.html?article=${encodeURIComponent(file)}`;
+  a.setAttribute('aria-label', title);
+
   a.innerHTML = `
     <img class="card-img" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
     <div class="card-body">
@@ -243,14 +242,15 @@ function gridCard(item){
     </div>`;
   return a;
 }
+
 async function renderHome(){
   const data = await loadVisibleSorted();
   if (!data.length) return;
 
+  // Lead + top stories
   const leadEl = document.getElementById('lead-story');
   const topEl = document.getElementById('top-stories');
   if (leadEl) leadEl.innerHTML = leadCardHTML(data[0]);
-
   if (topEl){
     topEl.innerHTML = '';
     for (const item of data.slice(1,5)){
@@ -261,6 +261,7 @@ async function renderHome(){
     }
   }
 
+  // Latest grid
   const latest = document.getElementById('latest-grid');
   if (latest){
     latest.innerHTML = '';
@@ -269,6 +270,7 @@ async function renderHome(){
     }
   }
 
+  // Sidebar latest
   const sList = document.getElementById('sidebar-latest');
   if (sList){
     sList.innerHTML = '';
@@ -281,6 +283,7 @@ async function renderHome(){
     }
   }
 
+  // Trending topics (by Category frequency)
   const trend = document.getElementById('trend-topics');
   if (trend){
     const counts = new Map();
@@ -289,9 +292,11 @@ async function renderHome(){
       if (!cat) continue;
       counts.set(cat, (counts.get(cat) || 0) + 1);
     }
-    const tags = [...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6).map(([k]) =>
-      `<a href="newsletters.html?category=${encodeURIComponent(k)}">${escapeHtml(k)}</a>`
-    ).join('');
+    const tags = [...counts.entries()]
+      .sort((a,b)=>b[1]-a[1])
+      .slice(0,6)
+      .map(([k]) => `<a href="newsletters.html?category=${encodeURIComponent(k)}">${escapeHtml(k)}</a>`)
+      .join('');
     trend.innerHTML = tags || '<span class="muted">No trending topics yet</span>';
   }
 }
@@ -330,18 +335,20 @@ async function renderListPage(){
 
   const data = await loadVisibleSorted();
 
+  // Category chips
   const chipWrap = document.getElementById('category-chips');
   if (chipWrap){
     const cats = [...new Set(data.map(i => (i.meta.Category || '').trim()).filter(Boolean))].sort();
     chipWrap.innerHTML = cats.map(c => `<a href="newsletters.html?category=${encodeURIComponent(c)}">${escapeHtml(c)}</a>`).join('');
   }
 
+  // Filter + search
   let filtered = activeCat
     ? data.filter(i => (i.meta.Category || '').trim().toLowerCase() === activeCat.toLowerCase())
     : data;
-
   if (q) filtered = searchItems(filtered, q);
 
+  // Summary
   const info = document.getElementById('active-filter');
   if (info){
     if (q && activeCat) info.textContent = `${filtered.length} result(s) for “${q}” in ${activeCat}`;
@@ -350,6 +357,7 @@ async function renderListPage(){
     else info.textContent = '';
   }
 
+  // Render
   container.innerHTML = '';
   if (!filtered.length){
     container.innerHTML = `<p class="muted">No items found${q ? ` for “${escapeHtml(q)}”` : ''}${activeCat ? ` in ${escapeHtml(activeCat)}` : ''}.</p>`;
@@ -366,7 +374,7 @@ function readingTimeFromText(text, wpm = 200){
   return `${Math.max(1, Math.round(words / wpm))} min read`;
 }
 function populateArticleHero(meta){
-  const bg = document.querySelector('.a-hero-bg');
+  const bgDiv = document.querySelector('.a-hero-bg'); // this is a <div> in article.html
   const titleEl = document.getElementById('article-title');
   const subEl = document.getElementById('article-subtitle');
   const metaEl = document.getElementById('article-meta');
@@ -383,12 +391,11 @@ function populateArticleHero(meta){
   if (cat){ catEl.hidden = false; catEl.textContent = cat; } else { catEl.hidden = true; }
 
   const img = resolveThumbPath(meta.Thumbnail);
-  if (bg){
-    // Ensure .a-hero-bg is an <img> element in article.html
-    bg.setAttribute('src', encodeURI(img));
-    bg.setAttribute('alt', '');
-    bg.setAttribute('loading', 'lazy');
-    bg.setAttribute('decoding', 'async');
+  if (bgDiv){
+    // Use CSS background on the DIV (works with your current HTML)
+    bgDiv.style.backgroundImage = `url("${encodeURI(img)}")`;
+    bgDiv.style.backgroundSize = 'cover';
+    bgDiv.style.backgroundPosition = 'center';
   }
 }
 function buildShareLinks(title){
