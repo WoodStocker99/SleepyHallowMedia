@@ -5,35 +5,44 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sleepy Hollow Media — Independent Reporting</title>
 
+  <!-- Favicon (optional) -->
   <link rel="icon" href="/favicon.ico">
-  <!-- Optional Google Fonts; you can self-host later -->
+
+  <!-- Fonts (optional; self-host later for perf) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap">
-  <link rel="stylesheet" href="styles.css" />
+
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <!-- ===== Top utility / trending strip ===== -->
+  <!-- Skip link for keyboard users -->
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- ==== Top utility / trending + search ==== -->
   <div class="topbar" aria-label="Site tools">
-    <div class="wrap">
+    <div class="wrap topbar-row">
       <div class="topbar-left">
-        <a href="newsletters.html" class="top-link">Latest</a>
-        <a href="newsletters.html?category=Opinion" class="top-link">Opinion</a>
-        <a href="newsletters.html?category=Local" class="top-link">Local</a>
+        <a class="top-link" href="newsletters.html">Latest</a>
+        <a class="top-link" href="newsletters.html?category=Opinion">Opinion</a>
+        <a class="top-link" href="newsletters.html?category=Local">Local</a>
       </div>
-      <div class="topbar-right">
-        <a href="#" class="top-link top-donate" aria-disabled="true" title="Coming soon">Donate</a>
-        <a href="#" class="top-link" aria-disabled="true" title="Coming soon">Subscribe</a>
-      </div>
+
+      <!-- Search sends users to newsletters.html?q=... -->
+      <form id="site-search" class="top-search" action="newsletters.html" role="search">
+        <label for="q" class="sr-only">Search</label>
+        <input id="q" name="q" type="search" placeholder="Search…" autocomplete="off">
+        <button class="btn" type="submit" aria-label="Search">Search</button>
+      </form>
     </div>
   </div>
 
-  <!-- ===== Header / primary nav ===== -->
+  <!-- ==== Header / Primary Nav ==== -->
   <header class="site-header" role="banner">
     <div class="wrap header-row">
-      <a class="brand" href="index.html">
-        <img src="assets/logo.png" alt="" class="brand-mark" />
+      <a class="brand" href="index.html" aria-label="Sleepy Hollow Media home">
+        <img class="brand-mark" src="assets/logo.png" alt="" width="34" height="34">
         <span class="brand-name">Sleepy Hollow Media</span>
       </a>
 
@@ -48,16 +57,16 @@
       <button class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">☰</button>
     </div>
 
-    <div id="mobile-menu" class="mobile-menu" role="navigation" aria-label="Mobile">
+    <nav id="mobile-menu" class="mobile-menu" aria-label="Mobile">
       <a data-nav="home" href="index.html">Home</a>
       <a data-nav="newsletters" href="newsletters.html">Newsletters</a>
       <a href="newsletters.html?category=Politics">Politics</a>
       <a href="newsletters.html?category=Culture">Culture</a>
       <a href="newsletters.html?category=Opinion">Opinion</a>
-    </div>
+    </nav>
   </header>
 
-  <!-- ===== Trending topics like a magazine ===== -->
+  <!-- ==== Trending topics (auto-filled by JS) ==== -->
   <aside class="trending" aria-label="Trending topics">
     <div class="wrap">
       <strong class="trend-label">Trending:</strong>
@@ -65,13 +74,18 @@
     </div>
   </aside>
 
-  <!-- ===== Magazine front page ===== -->
-  <main id="main" class="wrap front">
+  <!-- ==== Magazine front page ==== -->
+  <main id="main" class="wrap front" tabindex="-1">
 
-    <!-- Lead story -->
+    <!-- Lead + Top stories -->
     <section class="lead-grid" aria-label="Lead story">
-      <article id="lead-story" class="lead-card"><!-- filled by JS --></article>
-      <div id="top-stories" class="top-stories"><!-- filled by JS --></div>
+      <article id="lead-story" class="lead-card">
+        <!-- filled by JS -->
+      </article>
+
+      <div id="top-stories" class="top-stories">
+        <!-- filled by JS -->
+      </div>
     </section>
 
     <!-- Latest + Sidebar -->
@@ -90,7 +104,7 @@
         <div class="side-panel signup" role="complementary" aria-label="Newsletter signup">
           <h3 class="h-side">Never miss a story</h3>
           <p>Get the latest in your inbox. No spam, unsubscribe anytime.</p>
-          <form onsubmit="return false" aria-disabled="true" title="Wire up to your provider when ready">
+          <form onsubmit="return false" aria-disabled="true" title="Wire this to your provider when ready">
             <input type="email" placeholder="Email address" aria-label="Email address" disabled>
             <button class="btn" disabled>Subscribe</button>
           </form>
@@ -104,16 +118,16 @@
   <footer class="site-footer" id="footer">
     <div class="wrap footer-grid">
       <div>
-        <a class="brand is-footer" href="index.html">
-          <img src="assets/logo.png" alt="" class="brand-mark" />
+        <a class="brand" href="index.html" aria-label="Sleepy Hollow Media home">
+          <img class="brand-mark" src="assets/logo.png" alt="" width="34" height="34">
           <span class="brand-name">Sleepy Hollow Media</span>
         </a>
         <p class="muted">Independent reporting from the Hollow.</p>
       </div>
       <nav class="footer-links" aria-label="Footer">
         <a href="newsletters.html">Latest</a>
-        <a href="#" aria-disabled="true">Donate</a>
-        <a href="#" aria-disabled="true">Subscribe</a>
+        <a href="#">Donate</a>
+        <a href="#">Subscribe</a>
         <a href="newsletters.html?category=Politics">Politics</a>
         <a href="newsletters.html?category=Culture">Culture</a>
         <a href="newsletters.html?category=Opinion">Opinion</a>
@@ -122,10 +136,11 @@
     </div>
   </footer>
 
-  <!-- Markdown + sanitizer (as before) -->
+  <!-- Markdown & Sanitizer -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js" crossorigin="anonymous"></script>
-  <script src="script.js" type="module"></script>
+
+  <script src="script.js"></script>
   <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>

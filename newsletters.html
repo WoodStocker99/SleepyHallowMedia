@@ -7,14 +7,16 @@
   <title>Sleepy Hollow Media — All Newsletters</title>
   <link rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap">
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body data-page="list">
 
+  <a class="skip-link" href="#main">Skip to content</a>
+
   <header class="site-header" role="banner">
     <div class="wrap header-row">
-      <a class="brand" href="index.html">
-        <img src="assets/logo.png" alt="" class="brand-mark" />
+      <a class="brand" href="index.html" aria-label="Sleepy Hollow Media home">
+        <img class="brand-mark" src="assets/logo.png" alt="" width="34" height="34">
         <span class="brand-name">Sleepy Hollow Media</span>
       </a>
       <nav class="primary-nav" aria-label="Primary">
@@ -26,23 +28,26 @@
       </nav>
       <button class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">☰</button>
     </div>
-    <div id="mobile-menu" class="mobile-menu" role="navigation" aria-label="Mobile">
+    <nav id="mobile-menu" class="mobile-menu" aria-label="Mobile">
       <a data-nav="home" href="index.html">Home</a>
       <a data-nav="newsletters" href="newsletters.html">Newsletters</a>
       <a href="newsletters.html?category=Politics">Politics</a>
       <a href="newsletters.html?category=Culture">Culture</a>
       <a href="newsletters.html?category=Opinion">Opinion</a>
-    </div>
+    </nav>
   </header>
 
-  <main class="wrap list-page" id="main">
+  <main class="wrap list-page" id="main" tabindex="-1">
     <h1 class="page-title">All Newsletters</h1>
 
+    <!-- Filters / Search summary -->
     <div class="filter-row" role="region" aria-label="Filters">
       <div id="active-filter" class="muted"></div>
+      <div id="category-chips" class="trend-tags" style="margin-top:.4rem;"></div>
     </div>
 
-    <div id="news-list" class="cards-grid"><!-- filled by JS --></div>
+    <!-- Results / list -->
+    <div id="news-list" class="cards-grid"></div>
   </main>
 
   <footer class="site-footer">
@@ -53,7 +58,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js" crossorigin="anonymous"></script>
-  <script src="script.js" type="module"></script>
+  <script src="script.js"></script>
   <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>
