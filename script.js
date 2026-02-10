@@ -539,13 +539,14 @@ function renderArticle(container, filename, meta, body) {
 
 
 // ---- Boot ----
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initMobile();
   markCurrentNav();
   hijackHeaderSearch();
 
-  await renderHome();
-  await renderListPage();
-  await initArticlePage();
+  // Fire-and-forget (each function handles its own errors/DOM work)
+  renderHome();
+  renderListPage();
+  initArticlePage();
 });
