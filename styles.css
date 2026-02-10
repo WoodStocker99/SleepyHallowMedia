@@ -7,8 +7,8 @@
   --ink: #0e1a2a;
   --muted: #6c7890;
   --border: #e7e9ef;
-  --accent: #0f3e56;      /* pairs with logo navy */
-  --accent-2: #d48c45;    /* warm secondary accent */
+  --accent: #0f3e56;
+  --accent-2: #d48c45;
   --wrap: 1200px;
   --radius: 12px;
   --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
@@ -25,13 +25,13 @@
   --ink: #eaf0ff;
   --muted: #9aa7c0;
   --border: #1f2a3d;
-  --accent: #7dc0ff;      /* brighter accent in dark */
-  --accent-2: #efb077;    /* warm secondary accent in dark */
+  --accent: #7dc0ff;
+  --accent-2: #efb077;
   --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
   --shadow-md: 0 16px 36px rgba(0,0,0,.45);
 }
 
-/* Respect OS preference if user hasn’t chosen yet (JS sets a cookie/localStorage) */
+/* OS preference as default, until user chooses explicitly */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0f1420;
@@ -236,18 +236,9 @@ img{ display:block; max-width:100%; height:auto; }
 .article-body p{ margin: 1rem 0; }
 .article-body h2{ margin: 1.4rem 0 .6rem; font:700 1.5rem "Playfair Display", Georgia, serif; }
 .article-body h3{ margin: 1.1rem 0 .5rem; font:700 1.25rem "Playfair Display", Georgia, serif; }
-.article-body blockquote{ margin:1.2rem 0; padding:.9rem 1rem; border-left:4px solid var(--accent-2); background: color-mix(in oklab, var(--surface), #ffd6b5 30%); border-radius:8px; }
+.article-body blockquote{ margin:1.2rem 0; padding:.9rem 1rem; border-left:4px solid var(--accent-2); background:#fff5eb; border-radius:8px; }
 figure{ margin:1.1rem 0; }
 figcaption{ color: var(--muted); font-size:.9rem; margin-top:.3rem; }
-
-/* Share */
-.share-bar{ display:flex; gap:.5rem; flex-wrap:wrap; margin:.6rem 0 1rem; }
-.share-btn{ display:inline-block; padding:.45rem .8rem; border-radius:999px; font-weight:700;
-  background: color-mix(in oklab, var(--accent), white 85%); color: color-mix(in oklab, var(--accent), black 25%); border:1px solid color-mix(in oklab, var(--accent), white 60%);
-}
-:root[data-theme="dark"] .share-btn{
-  background: color-mix(in oklab, var(--accent), black 75%); color:#daf0ff; border-color: color-mix(in oklab, var(--accent), black 60%);
-}
 
 /* Footer */
 .site-footer{ margin-top:2rem; padding:1.2rem 0; background: var(--surface); border-top:1px solid var(--border); }
@@ -257,7 +248,6 @@ figcaption{ color: var(--muted); font-size:.9rem; margin-top:.3rem; }
 /* ---------- Utility ---------- */
 .sr-only{ position:absolute!important; height:1px; width:1px; overflow:hidden; clip:rect(1px,1px,1px,1px); white-space:nowrap; }
 [aria-disabled="true"], .disabled{ opacity:.6; pointer-events:none; }
-
-/* stretched link helper (if needed for other cards) */
+/* Make a link cover its parent card */
 .stretched-link{ position:absolute; inset:0; z-index:2; color:transparent; }
 .stretched-link:focus{ outline: 2px solid #fff; outline-offset: -2px; }
