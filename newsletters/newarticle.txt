@@ -4,6 +4,7 @@ Subtitle: A Not So short subtitle explainging this article and its thoughts and 
 Author: Jane Good Reporter
 Thumbnail: thumbnails/Untitled.jpg
 Date: 2026-01-23
+Tag: Politics, Opinion
 ---
 
 **AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA**

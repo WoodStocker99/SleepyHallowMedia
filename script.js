@@ -1,4 +1,4 @@
-// Sleepy Hollow Media — Magazine Script (FIXED LINKS + THUMBNAILS + ARTICLE HERO)
+// Sleepy Hollow Media — Magazine Script (Lead is fully clickable; no next/prev)
 
 // ---- Config ----
 const MANIFEST = 'newsletters/index.json';
@@ -182,7 +182,7 @@ function searchItems(items, query){
   return ranked.map(x => x.it);
 }
 
-// ---- Homepage builders (correct <a> and <img>) ----
+// ---- Homepage builders (lead fully clickable) ----
 function leadCardHTML(item){
   const { file, meta } = item;
   const title = meta.Title || file;
@@ -191,15 +191,18 @@ function leadCardHTML(item){
   const author = meta.Author || 'Staff';
   const img = resolveThumbPath(meta.Thumbnail);
 
+  // We add a "stretched-link" anchor layered over the whole card for easy click/tap
   return `
-    <a class="lead-link" href="article.html?article=${encodeURIComponent(file)}" aria-label="${escapeHtml(title)}">
-      <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
-    </a>
+    <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
     <div class="lead-body">
       ${cat ? `<span class="kicker">${escapeHtml(cat)}</span>` : ''}
-      <h2 class="lead-title"><a href="article.html?article=${encodeURIComponent(file)}">${escapeHtml(title)}</a></h2>
+      <h2 class="lead-title">
+        <a href="article.html?article=${encodeURIComponent(file)}">${escapeHtml(title)}</a>
+      </h2>
       <div class="lead-meta">${escapeHtml(date)}${date ? ' • ' : ''}${escapeHtml(author)}</div>
-    </div>`;
+    </div>
+    <a class="stretched-link" aria-label="${escapeHtml(title)}" href="article.html?article=${encodeURIComponent(file)}"></a>
+  `;
 }
 function topCardHTML(item){
   const { file, meta } = item;
@@ -209,11 +212,13 @@ function topCardHTML(item){
   const author = meta.Author || 'Staff';
 
   return `
-    <a class="top-thumb-link" href="article.html?article=${encodeURIComponent(file)}" aria-label="${escapeHtml(title)}">
-      <img class="top-thumb" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
+    <a href="article.html?article=${encodeURIComponent(file)}" aria-label="${escapeHtml(title)}">
+      <img class="top-thumb" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
     </a>
     <div class="top-body">
-      <h3 class="top-title"><a href="article.html?article=${encodeURIComponent(file)}">${escapeHtml(title)}</a></h3>
+      <h3 class="top-title">
+        <a href="article.html?article=${encodeURIComponent(file)}">${escapeHtml(title)}</a>
+      </h3>
       <div class="top-meta">${escapeHtml(date)}${date ? ' • ' : ''}${escapeHtml(author)}</div>
     </div>`;
 }
@@ -231,9 +236,8 @@ function gridCard(item){
   a.className = 'card';
   a.href = `article.html?article=${encodeURIComponent(file)}`;
   a.setAttribute('aria-label', title);
-
   a.innerHTML = `
-    <img class="card-img" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
+    <img class="card-img" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
     <div class="card-body">
       ${chip}${tags}
       <h3 class="card-title">${escapeHtml(title)}</h3>
@@ -368,7 +372,7 @@ async function renderListPage(){
   }
 }
 
-// ---- Article page ----
+// ---- Article page (no next/prev) ----
 function readingTimeFromText(text, wpm = 200){
   const words = String(text ?? '').trim().split(/\s+/).filter(Boolean).length;
   return `${Math.max(1, Math.round(words / wpm))} min read`;
@@ -392,7 +396,6 @@ function populateArticleHero(meta){
 
   const img = resolveThumbPath(meta.Thumbnail);
   if (bgDiv){
-    // Use CSS background on the DIV (works with your current HTML)
     bgDiv.style.backgroundImage = `url("${encodeURI(img)}")`;
     bgDiv.style.backgroundSize = 'cover';
     bgDiv.style.backgroundPosition = 'center';
@@ -457,12 +460,7 @@ async function initArticlePage(){
     renderArticle(content, file, parsed.meta, parsed.body);
     buildShareLinks(parsed.meta.Title || file);
 
-    const manifest = await loadManifest();
-    const idx = manifest.indexOf(file);
-    const prev = document.getElementById('prev-article');
-    const next = document.getElementById('next-article');
-    if (prev && idx > 0){ prev.href = `article.html?article=${encodeURIComponent(manifest[idx-1])}`; prev.hidden = false; }
-    if (next && idx >= 0 && idx < manifest.length-1){ next.href = `article.html?article=${encodeURIComponent(manifest[idx+1])}`; next.hidden = false; }
+    // Removed: next/prev linking
   }catch(e){
     console.error(e);
     content.innerHTML = `<p class="muted">Could not load this article.</p>`;
