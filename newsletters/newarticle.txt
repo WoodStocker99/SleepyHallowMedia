@@ -1,10 +1,10 @@
 ---
-Title: My New and Better Headline
-Subtitle: A Not So short subtitle explainging this article and its thoughts and reasonings
+Title: Politics *perhaps*?
+Subtitle: short subtitle explainging this article
 Author: Jane Good Reporter
-Thumbnail: thumbnails/Untitled.jpg
+Thumbnail: https://res.cloudinary.com/aenetworks/image/upload/c_fill,ar_2,w_3840,h_1920,g_auto/dpr_auto/f_auto/q_auto:eco/v1/donald-trump-gettyimages-687193180?_a=BAVAZGID0
 Date: 2026-01-23
-Tag: Politics, Opinion
+Tags: Politics, Opinion, Local
 ---
 
-**AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA**
+**I love politics**
