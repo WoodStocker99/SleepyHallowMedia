@@ -1,4 +1,4 @@
-/* Sleepy Hollow Media — Magazine Theme with Light/Dark switch */
+/* Sleepy Hollow Media — Magazine Theme with Light/Dark switch (Step 4) */
 
 /* ---------- Light tokens (default) ---------- */
 :root {
@@ -7,8 +7,8 @@
   --ink: #0e1a2a;
   --muted: #6c7890;
   --border: #e7e9ef;
-  --accent: #0f3e56;
-  --accent-2: #d48c45;
+  --accent: #0f3e56;      /* primary */
+  --accent-2: #d48c45;    /* warm secondary */
   --wrap: 1200px;
   --radius: 12px;
   --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
@@ -16,6 +16,7 @@
   --g-gap: 1rem;
   --h1: clamp(1.9rem, 1.3rem + 2vw, 2.6rem);
   --measure: 70ch;
+  --ring: 2px solid color-mix(in oklab, var(--accent), white 30%);
 }
 
 /* ---------- Dark tokens ---------- */
@@ -29,9 +30,10 @@
   --accent-2: #efb077;
   --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
   --shadow-md: 0 16px 36px rgba(0,0,0,.45);
+  --ring: 2px solid color-mix(in oklab, var(--accent), black 30%);
 }
 
-/* OS preference as default, until user chooses explicitly */
+/* Respect OS preference if user hasn’t explicitly chosen */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #0f1420;
@@ -43,6 +45,7 @@
     --accent-2: #efb077;
     --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
     --shadow-md: 0 16px 36px rgba(0,0,0,.45);
+    --ring: 2px solid color-mix(in oklab, var(--accent), black 30%);
   }
 }
 
@@ -61,6 +64,9 @@ body{
 a{ color: var(--accent); text-decoration: none; }
 a:hover{ text-decoration: underline; }
 img{ display:block; max-width:100%; height:auto; }
+
+/* Smooth out common hover state movement */
+a, button, .card, .top-card { transition: background .2s ease, box-shadow .2s ease, transform .15s ease, color .2s ease; }
 
 /* Skip link */
 .skip-link{
@@ -108,7 +114,9 @@ img{ display:block; max-width:100%; height:auto; }
 .primary-nav{ display:flex; gap:1.1rem; align-items:center; }
 .primary-nav a{ color:var(--ink); font-weight:600; }
 .primary-nav a[aria-current="page"]{ color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-.nav-toggle{ display:none; background:none; border:1px solid var(--border); border-radius:8px; padding:.3rem .5rem; color:var(--ink); }
+.nav-toggle{
+  display:none; background:none; border:1px solid var(--border); border-radius:8px; padding:.3rem .5rem; color:var(--ink);
+}
 .mobile-menu{ display:none; border-top:1px solid var(--border); background:var(--surface); padding:.6rem 0; }
 .mobile-menu a{ display:block; padding:.45rem 4%; color:var(--ink); font-weight:600; }
 .header-tools{ display:flex; align-items:center; gap:.5rem; }
@@ -186,7 +194,6 @@ img{ display:block; max-width:100%; height:auto; }
 .card{
   display:flex; flex-direction:column; background:var(--surface); border:1px solid var(--border);
   border-radius:10px; overflow:hidden; box-shadow: var(--shadow-sm);
-  transition: transform .12s ease, box-shadow .15s ease;
 }
 .card:hover{ transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .card-img{ width:100%; aspect-ratio:16/9; object-fit:cover; background:#dde7ef; }
@@ -236,9 +243,34 @@ img{ display:block; max-width:100%; height:auto; }
 .article-body p{ margin: 1rem 0; }
 .article-body h2{ margin: 1.4rem 0 .6rem; font:700 1.5rem "Playfair Display", Georgia, serif; }
 .article-body h3{ margin: 1.1rem 0 .5rem; font:700 1.25rem "Playfair Display", Georgia, serif; }
-.article-body blockquote{ margin:1.2rem 0; padding:.9rem 1rem; border-left:4px solid var(--accent-2); background:#fff5eb; border-radius:8px; }
+.article-body blockquote{
+  margin:1.2rem 0; padding:.9rem 1rem; border-left:4px solid var(--accent-2);
+  background:#fff5eb; border-radius:8px;
+}
 figure{ margin:1.1rem 0; }
 figcaption{ color: var(--muted); font-size:.9rem; margin-top:.3rem; }
+
+/* ---------- Share (styled) ---------- */
+.share-bar{
+  display:flex; gap:.5rem; flex-wrap:wrap; margin:.9rem 0 1.1rem;
+}
+.share-btn{
+  display:inline-flex; align-items:center; gap:.45rem;
+  padding:.5rem .85rem; border-radius:999px; font-weight:800; font-size:.92rem;
+  border:1px solid color-mix(in oklab, var(--accent), white 60%);
+  background: color-mix(in oklab, var(--accent), white 85%);
+  color: color-mix(in oklab, var(--accent), black 15%);
+  text-decoration:none; cursor:pointer;
+  box-shadow: var(--shadow-sm);
+}
+.share-btn:hover{ filter: brightness(.97); transform: translateY(-1px); }
+.share-btn:active{ transform: translateY(0); }
+.share-btn:focus-visible{ outline: var(--ring); outline-offset: 2px; }
+:root[data-theme="dark"] .share-btn{
+  background: color-mix(in oklab, var(--accent), black 75%);
+  border-color: color-mix(in oklab, var(--accent), black 60%);
+  color: #daf0ff;
+}
 
 /* Footer */
 .site-footer{ margin-top:2rem; padding:1.2rem 0; background: var(--surface); border-top:1px solid var(--border); }
@@ -248,6 +280,6 @@ figcaption{ color: var(--muted); font-size:.9rem; margin-top:.3rem; }
 /* ---------- Utility ---------- */
 .sr-only{ position:absolute!important; height:1px; width:1px; overflow:hidden; clip:rect(1px,1px,1px,1px); white-space:nowrap; }
 [aria-disabled="true"], .disabled{ opacity:.6; pointer-events:none; }
-/* Make a link cover its parent card */
+/* Make a link cover its parent card (used for lead card) */
 .stretched-link{ position:absolute; inset:0; z-index:2; color:transparent; }
 .stretched-link:focus{ outline: 2px solid #fff; outline-offset: -2px; }
