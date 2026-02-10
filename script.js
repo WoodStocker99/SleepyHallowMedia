@@ -1,4 +1,4 @@
-// Sleepy Hollow Media — Magazine Script (Lead is fully clickable; no next/prev)
+// Sleepy Hollow Media — Magazine Script + Theme (dark/light)
 
 // ---- Config ----
 const MANIFEST = 'newsletters/index.json';
@@ -6,6 +6,60 @@ const NEWS_DIR = 'newsletters/';
 const DEFAULT_THUMB = 'thumbnails/placeholder.png';
 const HOMEPAGE_LATEST_LIMIT = 12;
 const SIDEBAR_LATEST_LIMIT = 8;
+
+// =================== THEME ===================
+const THEME_COOKIE = 'theme';
+function getCookie(name){
+  const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([$?*|{}()[\]\\/+^])/g,'\\$1') + '=([^;]*)'));
+  return m ? decodeURIComponent(m[1]) : '';
+}
+function setCookie(name, value, days=365){
+  const maxAge = days * 24 * 60 * 60;
+  document.cookie = `${encodeURIComponent(name)}=${encodeURIComponent(value)}; Max-Age=${maxAge}; Path=/; SameSite=Lax`;
+}
+function getStoredTheme(){
+  // 1) cookie, 2) localStorage, 3) system preference
+  const c = getCookie(THEME_COOKIE);
+  if (c === 'dark' || c === 'light') return c;
+  try{
+    const s = localStorage.getItem(THEME_COOKIE);
+    if (s === 'dark' || s === 'light') return s;
+  }catch{}
+  // system
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+function applyTheme(theme){
+  const root = document.documentElement; // <html>
+  root.setAttribute('data-theme', theme);
+  // UI affordance (icon + aria-pressed)
+  const btn = document.getElementById('theme-toggle');
+  if (btn){
+    btn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+    const icon = btn.querySelector('.theme-icon');
+    if (icon) icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    btn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+  }
+}
+function initTheme(){
+  const t = getStoredTheme();
+  applyTheme(t);
+  const btn = document.getElementById('theme-toggle');
+  if (btn){
+    btn.addEventListener('click', ()=>{
+      const next = (document.documentElement.getAttribute('data-theme') === 'dark') ? 'light' : 'dark';
+      applyTheme(next);
+      try{ localStorage.setItem(THEME_COOKIE, next); }catch{}
+      setCookie(THEME_COOKIE, next, 365);
+    });
+  }
+  // Listen to OS changes only if user has not explicitly chosen (no cookie/localStorage)
+  const explicit = getCookie(THEME_COOKIE) || (()=>{try{return localStorage.getItem(THEME_COOKIE)}catch{return null}})();
+  if (!explicit && window.matchMedia){
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    mq.addEventListener?.('change', e => applyTheme(e.matches ? 'dark':'light'));
+  }
+}
+// ================= END THEME =================
 
 // ---- Utils ----
 function escapeHtml(str){
@@ -191,9 +245,8 @@ function leadCardHTML(item){
   const author = meta.Author || 'Staff';
   const img = resolveThumbPath(meta.Thumbnail);
 
-  // We add a "stretched-link" anchor layered over the whole card for easy click/tap
   return `
-    <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
+    <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
     <div class="lead-body">
       ${cat ? `<span class="kicker">${escapeHtml(cat)}</span>` : ''}
       <h2 class="lead-title">
@@ -201,7 +254,7 @@ function leadCardHTML(item){
       </h2>
       <div class="lead-meta">${escapeHtml(date)}${date ? ' • ' : ''}${escapeHtml(author)}</div>
     </div>
-    <a class="stretched-link" aria-label="${escapeHtml(title)}" href="article.html?article=${encodeURIComponent(file)}"></a>
+    <a class="stretched-link" href="article.html?article=${encodeURIComponent(file)}" aria-label="${escapeHtml(title)}"></a>
   `;
 }
 function topCardHTML(item){
@@ -212,8 +265,8 @@ function topCardHTML(item){
   const author = meta.Author || 'Staff';
 
   return `
-    <a href="article.html?article=${encodeURIComponent(file)}" aria-label="${escapeHtml(title)}">
-      <img class="top-thumb" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
+    <a href="article.html?article=${encodeURIComponent(file)}">
+      <img class="top-thumb" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
     </a>
     <div class="top-body">
       <h3 class="top-title">
@@ -237,7 +290,7 @@ function gridCard(item){
   a.href = `article.html?article=${encodeURIComponent(file)}`;
   a.setAttribute('aria-label', title);
   a.innerHTML = `
-    <img class="card-img" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
+    <img class="card-img" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
     <div class="card-body">
       ${chip}${tags}
       <h3 class="card-title">${escapeHtml(title)}</h3>
@@ -378,7 +431,7 @@ function readingTimeFromText(text, wpm = 200){
   return `${Math.max(1, Math.round(words / wpm))} min read`;
 }
 function populateArticleHero(meta){
-  const bgDiv = document.querySelector('.a-hero-bg'); // this is a <div> in article.html
+  const bgDiv = document.querySelector('.a-hero-bg'); // styled div
   const titleEl = document.getElementById('article-title');
   const subEl = document.getElementById('article-subtitle');
   const metaEl = document.getElementById('article-meta');
@@ -459,8 +512,7 @@ async function initArticlePage(){
     const parsed = await loadNewsletter(file);
     renderArticle(content, file, parsed.meta, parsed.body);
     buildShareLinks(parsed.meta.Title || file);
-
-    // Removed: next/prev linking
+    // No next/prev population by design
   }catch(e){
     console.error(e);
     content.innerHTML = `<p class="muted">Could not load this article.</p>`;
@@ -469,6 +521,7 @@ async function initArticlePage(){
 
 // ---- Boot ----
 document.addEventListener('DOMContentLoaded', async ()=>{
+  initTheme();         // NEW
   initMobile();
   markCurrentNav();
   hijackHeaderSearch();
