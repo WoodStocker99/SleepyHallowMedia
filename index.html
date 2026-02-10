@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sleepy Hollow Media — Home</title>
+
+  <!-- Optional favicon and fonts -->
+  <link rel="icon" href="/favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="sh-header" role="banner">
+    <div class="sh-container sh-header-row">
+      <a href="index.html" class="sh-logo">
+        <img src="assets/logo.png" alt="Sleepy Hollow Media" class="sh-logo-img">
+        <span class="sh-site-title">Sleepy Hollow Media</span>
+      </a>
+
+      <nav class="sh-nav" aria-label="Main Navigation">
+        <a href="index.html" data-nav="home">Home</a>
+        <a href="newsletters.html" data-nav="newsletters">Newsletters</a>
+        <a href="#" class="sh-nav-disabled" aria-disabled="true">Categories</a>
+        <a href="#" class="sh-nav-disabled" aria-disabled="true">Search</a>
+      </nav>
+
+      <button class="sh-nav-toggle" aria-label="Toggle menu" aria-expanded="false" aria-controls="sh-mobile-menu">☰</button>
+    </div>
+
+    <div id="sh-mobile-menu" class="sh-mobile-menu" role="navigation" aria-label="Mobile Navigation">
+      <a href="index.html">Home</a>
+      <a href="newsletters.html">Newsletters</a>
+      <a href="#" class="sh-nav-disabled" aria-disabled="true">Categories (soon)</a>
+      <a href="#" class="sh-nav-disabled" aria-disabled="true">Search (soon)</a>
+    </div>
+  </header>
+
+
+  <!-- MAIN -->
+  <main id="main">
+
+    <!-- HERO (light, no CTA button) -->
+    <section class="sh-hero">
+      <div class="sh-container sh-hero-inner">
+        <div class="sh-hero-kicker">Independent • Curated • Community</div>
+        <h1 class="sh-hero-title">Stories from the Hollow</h1>
+        <p class="sh-hero-sub">
+          Daily bulletins, special reports, and thoughtful commentary — delivered with calm twilight clarity.
+        </p>
+      </div>
+
+      <div class="sh-hero-fog" aria-hidden="true"></div>
+      <div class="sh-hero-moon" aria-hidden="true"></div>
+      <div class="sh-hero-ridge" aria-hidden="true"></div>
+    </section>
+
+
+    <!-- FEATURED -->
+    <section class="sh-section">
+      <div class="sh-container">
+        <div class="sh-section-head">
+          <h2>Featured</h2>
+          <a class="sh-link" href="newsletters.html">View all</a>
+        </div>
+        <div id="featured-article" class="sh-featured"></div>
+      </div>
+    </section>
+
+
+    <!-- LATEST (no button) -->
+    <section class="sh-section">
+      <div class="sh-container">
+        <h2 class="sh-section-title">Latest</h2>
+        <div id="latest-grid" class="sh-grid"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="site-footer">
+    <div class="sh-container">
+      <small>© <span id="year"></span> Sleepy Hollow Media</small>
+    </div>
+  </footer>
+
+  <!-- Markdown & Sanitizer -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js" crossorigin="anonymous"></script>
+
+  <script src="script.js"></script>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>
