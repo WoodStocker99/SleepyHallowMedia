@@ -1,7 +1,4 @@
-// Sleepy Hollow Media — Magazine Script (Hot-fix)
-// - Correct clickable links for lead/top/grid
-// - Accept /newsletters/<file> and newsletters/<file> in ?article=...
-// - Keep theme toggle, search, categories, tags, trending, share, etc.
+// Sleepy Hollow Media — Magazine Script (stabilized)
 
 // ---- Config ----
 const MANIFEST = 'newsletters/index.json';
@@ -13,7 +10,7 @@ const SIDEBAR_LATEST_LIMIT = 8;
 // =================== THEME ===================
 const THEME_COOKIE = 'theme';
 function getCookie(name){
-  const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([$?*|{}()[\]\\/+^])/g,'\\$1') + '=([^;]*)'));
+  const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([$?*|{}()[\\]\\/+^])/g,'\\$1') + '=([^;]*)'));
   return m ? decodeURIComponent(m[1]) : '';
 }
 function setCookie(name, value, days=365){
@@ -30,8 +27,7 @@ function getStoredTheme(){
   return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
 }
 function applyTheme(theme){
-  const root = document.documentElement;
-  root.setAttribute('data-theme', theme);
+  document.documentElement.setAttribute('data-theme', theme);
   const btn = document.getElementById('theme-toggle');
   if (btn){
     btn.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
@@ -70,19 +66,12 @@ function escapeHtml(str){
     .replace(/'/g, '&#39;');
 }
 
-// IMPORTANT: accept absolute or relative newsletter paths safely
+// Accepts: "funtext.txt", "newsletters/funtext.txt", or "/newsletters/funtext.txt"
 function sanitizeFilename(filename){
   if (!filename || typeof filename !== 'string') return '';
-  // normalize slashes and trim
   let f = filename.replace(/\\/g, '/').trim();
-
-  // strip ONE leading slash (/newsletters/foo.txt -> newsletters/foo.txt)
   if (f.startsWith('/')) f = f.slice(1);
-
-  // still block traversal and external URLs
   if (f.includes('..') || f.startsWith('http:') || f.startsWith('https:')) return '';
-
-  // allow "newsletters/..." or just "foo.txt"
   return f || '';
 }
 
@@ -262,9 +251,8 @@ function leadCardHTML(item){
   const img    = resolveThumbPath(meta.Thumbnail);
   const url    = `article.html?article=${encodeURIComponent(file)}`;
 
-  // One stretched link overlay to cover the entire card (no nested anchors)
   return `
-    <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="eager" decoding="async">
+    <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
     <div class="lead-body">
       ${cat ? `<span class="kicker">${escapeHtml(cat)}</span>` : ''}
       <h2 class="lead-title"><a href="${url}">${escapeHtml(title)}</a></h2>
@@ -282,9 +270,8 @@ function topCardHTML(item){
   const author = meta.Author || 'Staff';
   const url    = `article.html?article=${encodeURIComponent(file)}`;
 
-  // Separate anchors for image and title (both point to article)
   return `
-    <a href="${url}" aria-label="${escapeHtml(title)}">
+    <a class="top-image-link" href="${url}">
       <img class="top-thumb" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
     </a>
     <div class="top-body">
@@ -324,7 +311,6 @@ async function renderHome(){
   const data = await loadVisibleSorted();
   if (!data.length) return;
 
-  // Lead + top stories
   const leadEl = document.getElementById('lead-story');
   const topEl  = document.getElementById('top-stories');
   if (leadEl) leadEl.innerHTML = leadCardHTML(data[0]);
@@ -338,7 +324,6 @@ async function renderHome(){
     }
   }
 
-  // Latest grid
   const latest = document.getElementById('latest-grid');
   if (latest){
     latest.innerHTML = '';
@@ -347,7 +332,6 @@ async function renderHome(){
     }
   }
 
-  // Sidebar latest
   const sList = document.getElementById('sidebar-latest');
   if (sList){
     sList.innerHTML = '';
@@ -361,7 +345,6 @@ async function renderHome(){
     }
   }
 
-  // Trending topics (by Category frequency)
   const trend = document.getElementById('trend-topics');
   if (trend){
     const counts = new Map();
@@ -373,7 +356,7 @@ async function renderHome(){
     const tags = [...counts.entries()]
       .sort((a,b)=>b[1]-a[1])
       .slice(0,6)
-      .map(([k]) => `<a class="top-link" href="newsletters.html?category=${encodeURIComponent(k)}">${escapeHtml(k)}</a>`)
+      .map(([k]) => `<a href="newsletters.html?category=${encodeURIComponent(k)}">${escapeHtml(k)}</a>`)
       .join('');
     trend.innerHTML = tags || '<span class="muted">No trending topics yet</span>';
   }
@@ -390,20 +373,17 @@ async function renderListPage(){
 
   const data = await loadVisibleSorted();
 
-  // Category chips
   const chipWrap = document.getElementById('category-chips');
   if (chipWrap){
     const cats = [...new Set(data.map(i => (i.meta.Category || '').trim()).filter(Boolean))].sort();
     chipWrap.innerHTML = cats.map(c => `<a href="newsletters.html?category=${encodeURIComponent(c)}">${escapeHtml(c)}</a>`).join('');
   }
 
-  // Filter + search
   let filtered = activeCat
     ? data.filter(i => (i.meta.Category || '').trim().toLowerCase() === activeCat.toLowerCase())
     : data;
   if (q) filtered = searchItems(filtered, q);
 
-  // Summary
   const info = document.getElementById('active-filter');
   if (info){
     if (q && activeCat) info.textContent = `${filtered.length} result(s) for “${q}” in ${activeCat}`;
@@ -412,7 +392,6 @@ async function renderListPage(){
     else info.textContent = '';
   }
 
-  // Render
   container.innerHTML = '';
   if (!filtered.length){
     container.innerHTML = `<p class="muted">No items found${q ? ` for “${escapeHtml(q)}”` : ''}${activeCat ? ` in ${escapeHtml(activeCat)}` : ''}.</p>`;
@@ -514,7 +493,6 @@ async function initArticlePage(){
     const parsed = await loadNewsletter(file);
     renderArticle(content, file, parsed.meta, parsed.body);
     buildShareLinks(parsed.meta.Title || file);
-    // No next/prev by design
   }catch(e){
     console.error(e);
     content.innerHTML = `<p class="muted">Could not load this article.</p>`;
