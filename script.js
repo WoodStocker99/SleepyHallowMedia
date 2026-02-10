@@ -1,16 +1,27 @@
-// Sleepy Hollow Media — Magazine Script (Step 4.1: Tag filtering)
+/* Sleepy Hollow Media — Magazine Script (stable, complete)
+   - Theme (light/dark) with cookie + localStorage
+   - Homepage: lead + top stories + latest + sidebar + trending
+   - Newsletters list: search + category chips + TAG filtering
+   - Article view: hero from Thumbnail + reading time + share links
+   - No top-level await (prevents parse/runtime errors in strict environments)
+*/
 
-// ---- Config ----
+'use strict';
+
+// -----------------------------
+// Config
+// -----------------------------
 const MANIFEST = 'newsletters/index.json';
 const NEWS_DIR = 'newsletters/';
 const DEFAULT_THUMB = 'thumbnails/placeholder.png';
 const HOMEPAGE_LATEST_LIMIT = 12;
 const SIDEBAR_LATEST_LIMIT = 8;
 
-// =================== THEME ===================
+// -----------------------------
+// Theme (cookie + localStorage)
+// -----------------------------
 const THEME_COOKIE = 'theme';
 
-// Safe cookie helpers
 function getCookie(name) {
   const escaped = String(name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const m = document.cookie.match(new RegExp('(?:^|; )' + escaped + '=([^;]*)'));
@@ -50,15 +61,17 @@ function initTheme() {
       setCookie(THEME_COOKIE, next, 365);
     });
   }
+  // Follow OS changes only if user hasn’t explicitly chosen a theme
   const explicit = getCookie(THEME_COOKIE) || (() => { try { return localStorage.getItem(THEME_COOKIE); } catch { return null; } })();
   if (!explicit && window.matchMedia) {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
     mq.addEventListener?.('change', e => applyTheme(e.matches ? 'dark' : 'light'));
   }
 }
-// ================= END THEME =================
 
-// ---- Utils ----
+// -----------------------------
+// Utilities
+// -----------------------------
 function escapeHtml(str) {
   if (str == null) return '';
   return String(str)
@@ -159,11 +172,16 @@ function renderMarkdownSafe(text) {
     const raw = window.marked.parse(String(text ?? ''));
     return window.DOMPurify.sanitize(raw, { ALLOWED_ATTR: ['href','src','alt','title','class'] });
   }
-  // fallback to paragraph blocks
-  return String(text ?? '').split(/\n\s*\n/).map(p => `<p>${escapeHtml(p.trim())}</p>`).join('');
+  // Fallback: simple paragraph blocks
+  return String(text ?? '')
+    .split(/\n\s*\n/)
+    .map(p => `<p>${escapeHtml(p.trim())}</p>`)
+    .join('');
 }
 
-// ---- Chrome ----
+// -----------------------------
+// Nav / Header helpers
+// -----------------------------
 function markCurrentNav() {
   const file = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
   const map = { 'index.html': 'home', 'newsletters.html': 'newsletters' };
@@ -181,17 +199,18 @@ function initMobile() {
   }
 }
 function hijackHeaderSearch() {
+  // Optional search form (if present): newsletters.html…</form>
   const form = document.getElementById('site-search');
   if (!form) return;
   form.addEventListener('submit', (e) => {
     const input = form.querySelector('input[name="q"]');
-    if (!input || !input.value.trim()) {
-      e.preventDefault();
-    }
+    if (!input || !input.value.trim()) e.preventDefault();
   });
 }
 
-// ---- Data helpers ----
+// -----------------------------
+// Data helpers
+// -----------------------------
 async function loadVisibleSorted() {
   const manifest = await loadManifest();
   if (!manifest.length) return [];
@@ -211,8 +230,9 @@ async function loadVisibleSorted() {
   const visible = items.filter(r => !isTruthy(r.meta.Hidden));
   visible.sort((a, b) => {
     const ad = a.meta._dateObj, bd = b.meta._dateObj;
-    const aOk = ad && !Number.isNaN(ad.getTime()), bOk = bd && !Number.isNaN(bd.getTime());
-    if (aOk && bOk) return bd - ad;
+    const aOk = ad && !Number.isNaN(ad.getTime());
+    const bOk = bd && !Number.isNaN(bd.getTime());
+    if (aOk && bOk) return bd - ad;  // newest first
     if (aOk) return -1;
     if (bOk) return 1;
     return b.file.localeCompare(a.file);
@@ -220,7 +240,9 @@ async function loadVisibleSorted() {
   return visible;
 }
 
-// ---- Search ranking ----
+// -----------------------------
+// Search ranking
+// -----------------------------
 function normalize(str) { return String(str ?? '').toLowerCase(); }
 function itemScore(item, q) {
   const { meta, body } = item;
@@ -245,7 +267,9 @@ function searchItems(items, query) {
   return ranked.map(x => x.it);
 }
 
-// ---- Card builders (VALID <a> + <img>) ----
+// -----------------------------
+// Card builders (valid <a> + <img>)
+// -----------------------------
 function leadCardHTML(item) {
   const { file, meta } = item;
   const title  = meta.Title || file;
@@ -255,9 +279,8 @@ function leadCardHTML(item) {
   const img    = resolveThumbPath(meta.Thumbnail);
   const url    = `article.html?article=${encodeURIComponent(file)}`;
 
-  // full-card link
   return `
-    <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
+    <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
     <div class="lead-body">
       ${cat ? `<span class="kicker">${escapeHtml(cat)}</span>` : ''}
       <h2 class="lead-title"><a href="${url}">${escapeHtml(title)}</a></h2>
@@ -277,12 +300,13 @@ function topCardHTML(item) {
 
   return `
     <a href="${url}" aria-label="${escapeHtml(title)}">
-      <img class="top-thumb" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
+      <img class="top-thumb" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
     </a>
     <div class="top-body">
       <h3 class="top-title"><a href="${url}">${escapeHtml(title)}</a></h3>
       <div class="top-meta">${escapeHtml(date)}${date ? ' • ' : ''}${escapeHtml(author)}</div>
-    </div>`;
+    </div>
+  `;
 }
 
 function gridCard(item) {
@@ -301,7 +325,7 @@ function gridCard(item) {
   a.href = url;
   a.setAttribute('aria-label', title);
   a.innerHTML = `
-    <img class="card-img" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
+    <img class="card-img" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
     <div class="card-body">
       ${chip}${tags}
       <h3 class="card-title">${escapeHtml(title)}</h3>
@@ -311,7 +335,9 @@ function gridCard(item) {
   return a;
 }
 
-// ---- Homepage render ----
+// -----------------------------
+// Homepage render
+// -----------------------------
 async function renderHome() {
   const data = await loadVisibleSorted();
   if (!data.length) return;
@@ -319,6 +345,7 @@ async function renderHome() {
   const leadEl = document.getElementById('lead-story');
   const topEl  = document.getElementById('top-stories');
   if (leadEl) leadEl.innerHTML = leadCardHTML(data[0]);
+
   if (topEl) {
     topEl.innerHTML = '';
     for (const item of data.slice(1, 5)) {
@@ -368,14 +395,12 @@ async function renderHome() {
   }
 }
 
-// ---- List page (search + category + TAGS) ----
+// -----------------------------
+// List page (search + category + TAGS)
+// -----------------------------
 function parseTagsParam(value) {
-  // ?tag=local,events  -> ['local','events']
   if (!value) return [];
-  return value
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean);
+  return value.split(',').map(s => s.trim()).filter(Boolean);
 }
 
 async function renderListPage() {
@@ -385,7 +410,7 @@ async function renderListPage() {
   const params = new URLSearchParams(location.search);
   const q = params.get('q')?.trim();
   const activeCat = params.get('category')?.trim();
-  const tagParam = params.get('tag')?.trim(); // NEW
+  const tagParam = params.get('tag')?.trim();
   const activeTags = parseTagsParam(tagParam).map(t => t.toLowerCase());
 
   const data = await loadVisibleSorted();
@@ -394,10 +419,12 @@ async function renderListPage() {
   const chipWrap = document.getElementById('category-chips');
   if (chipWrap) {
     const cats = [...new Set(data.map(i => (i.meta.Category || '').trim()).filter(Boolean))].sort();
-    chipWrap.innerHTML = cats.map(c => `<a href="newsletters.html?category=${encodeURIComponent(c)}">${escapeHtml(c)}</a>`).join('');
+    chipWrap.innerHTML = cats.map(c =>
+      `<a href="newsletters.html?category=${encodeURIComponent(c)}">${escapeHtml(c)}</a>`
+    ).join('');
   }
 
-  // NEW: Tag cloud
+  // Tag cloud
   const tagWrap = document.getElementById('tag-cloud');
   if (tagWrap) {
     const counts = new Map();
@@ -412,10 +439,10 @@ async function renderListPage() {
     tagWrap.innerHTML = list.map(([t]) => {
       const isOn = activeTags.includes(t.toLowerCase());
       const url = new URL(location.href);
-      url.searchParams.set('tag', isOn
-        ? activeTags.filter(x => x !== t.toLowerCase()).join(',')
-        : [...activeTags, t.toLowerCase()].join(','));
-      return `<a href="${url.pathname + url.search}" aria-pressed="${isOn ? 'true' : 'false'}">${escapeHtml(t)}</a>`;
+      const current = parseTagsParam(url.searchParams.get('tag') || '').map(x => x.toLowerCase());
+      const next = isOn ? current.filter(x => x !== t.toLowerCase()) : [...new Set([...current, t.toLowerCase()])];
+      if (next.length) url.searchParams.set('tag', next.join(',')); else url.searchParams.delete('tag');
+      return `<a href="${url.pathname + url.search}">${escapeHtml(t)}</a>`;
     }).join('') || '<span class="muted">No tags yet</span>';
   }
 
@@ -424,7 +451,7 @@ async function renderListPage() {
     ? data.filter(i => (i.meta.Category || '').trim().toLowerCase() === activeCat.toLowerCase())
     : data;
 
-  // Filter by TAGS (OR logic within tags)
+  // Filter by TAGS (OR within tags)
   if (activeTags.length) {
     filtered = filtered.filter(i => {
       const tags = (i.meta._tags || []).map(t => t.toLowerCase());
@@ -442,9 +469,7 @@ async function renderListPage() {
     if (q) parts.push(`“${q}”`);
     if (activeCat) parts.push(`Category: ${activeCat}`);
     if (activeTags.length) parts.push(`Tags: ${activeTags.join(', ')}`);
-    info.textContent = parts.length
-      ? `${filtered.length} result(s) — ${parts.join(' • ')}`
-      : '';
+    info.textContent = parts.length ? `${filtered.length} result(s) — ${parts.join(' • ')}` : '';
   }
 
   // Render
@@ -456,11 +481,14 @@ async function renderListPage() {
   for (const item of filtered) container.appendChild(gridCard(item));
 }
 
-// ---- Article page (no next/prev) ----
+// -----------------------------
+// Article page
+// -----------------------------
 function readingTimeFromText(text, wpm = 200) {
   const words = String(text ?? '').trim().split(/\s+/).filter(Boolean).length;
   return `${Math.max(1, Math.round(words / wpm))} min read`;
 }
+
 function populateArticleHero(meta) {
   const bgDiv   = document.querySelector('.a-hero-bg');
   const titleEl = document.getElementById('article-title');
@@ -473,10 +501,10 @@ function populateArticleHero(meta) {
   const author = meta.Author || 'Staff';
   const cat    = (meta.Category || '').trim();
 
-  titleEl.textContent = title;
-  subEl.textContent   = meta.Subtitle || '';
-  metaEl.textContent  = `${date}${date ? ' • ' : ''}${author}`;
-  if (cat) { catEl.hidden = false; catEl.textContent = cat; } else { catEl.hidden = true; }
+  if (titleEl) titleEl.textContent = title;
+  if (subEl)   subEl.textContent   = meta.Subtitle || '';
+  if (metaEl)  metaEl.textContent  = `${date}${date ? ' • ' : ''}${author}`;
+  if (catEl)   { if (cat) { catEl.hidden = false; catEl.textContent = cat; } else { catEl.hidden = true; } }
 
   const img = resolveThumbPath(meta.Thumbnail);
   if (bgDiv) {
@@ -485,6 +513,7 @@ function populateArticleHero(meta) {
     bgDiv.style.backgroundPosition = 'center';
   }
 }
+
 function buildShareLinks(title) {
   const url = location.href;
   const email  = document.querySelector('[data-share="email"]');
@@ -508,6 +537,7 @@ function buildShareLinks(title) {
     });
   }
 }
+
 function renderArticle(container, filename, meta, body) {
   populateArticleHero(meta);
 
@@ -524,7 +554,20 @@ function renderArticle(container, filename, meta, body) {
     ${meta.Subtitle ? `<p class="muted" style="margin:.2rem 0 1rem 0">${escapeHtml(meta.Subtitle)}</p>` : ''}
     <p class="muted" style="margin:.2rem 0 1rem 0">${escapeHtml(metaLine)} • ${escapeHtml(reading)}</p>
     <div>${bodyHtml}</div>
-  </p>`;
+  `;
+
+  document.title = `${meta.Title || filename} — Sleepy Hollow Media`;
+}
+
+async function initArticlePage() {
+  const content = document.getElementById('article-content');
+  if (!content) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get('article');
+  const file = sanitizeFilename(raw);
+  if (!file) {
+    content.innerHTML = `<p class="muted">Missing or invalid article parameter.</p>`;
     return;
   }
 
@@ -536,16 +579,18 @@ function renderArticle(container, filename, meta, body) {
     console.error(e);
     content.innerHTML = `<p class="muted">Could not load this article.</p>`;
   }
+}
 
-
-// ---- Boot ----
+// -----------------------------
+// Boot (no awaits here)
+// -----------------------------
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initMobile();
   markCurrentNav();
   hijackHeaderSearch();
 
-  // Fire-and-forget (each function handles its own errors/DOM work)
+  // Fire-and-forget; each async function handles its own work
   renderHome();
   renderListPage();
   initArticlePage();
