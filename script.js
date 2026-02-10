@@ -1,4 +1,4 @@
-// Sleepy Hollow Media — Magazine Script (stabilized, cookie-regex fixed)
+// Sleepy Hollow Media — Magazine Script (Step 4.1: Tag filtering)
 
 // ---- Config ----
 const MANIFEST = 'newsletters/index.json';
@@ -12,7 +12,6 @@ const THEME_COOKIE = 'theme';
 
 // Safe cookie helpers
 function getCookie(name) {
-  // Escape 'name' for use inside RegExp
   const escaped = String(name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const m = document.cookie.match(new RegExp('(?:^|; )' + escaped + '=([^;]*)'));
   return m ? decodeURIComponent(m[1]) : '';
@@ -256,9 +255,9 @@ function leadCardHTML(item) {
   const img    = resolveThumbPath(meta.Thumbnail);
   const url    = `article.html?article=${encodeURIComponent(file)}`;
 
-  // 'stretched-link' covers the entire card to ensure full clickability
+  // full-card link
   return `
-    <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="eager" decoding="async" />
+    <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
     <div class="lead-body">
       ${cat ? `<span class="kicker">${escapeHtml(cat)}</span>` : ''}
       <h2 class="lead-title"><a href="${url}">${escapeHtml(title)}</a></h2>
@@ -278,7 +277,7 @@ function topCardHTML(item) {
 
   return `
     <a href="${url}" aria-label="${escapeHtml(title)}">
-      <img class="top-thumb" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async"/>
+      <img class="top-thumb" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
     </a>
     <div class="top-body">
       <h3 class="top-title"><a href="${url}">${escapeHtml(title)}</a></h3>
@@ -292,7 +291,7 @@ function gridCard(item) {
   const title  = meta.Title || file;
   const date   = formatDate(meta.Date);
   const author = meta.Author || 'Staff';
-  const chip   = meta.Category ? `<span class="chip">${escapeHtml(meta.Category)}</span>` : '';
+  const chip   = meta.Category ? `<span class="chip" title="Category">${escapeHtml(meta.Category)}</span>` : '';
   const tags   = (meta._tags || []).slice(0, 2).map(t => `<span class="chip" title="Tag">${escapeHtml(t)}</span>`).join('');
   const sub    = meta.Subtitle ? `<p class="card-sub">${escapeHtml(meta.Subtitle)}</p>` : '';
   const url    = `article.html?article=${encodeURIComponent(file)}`;
@@ -302,7 +301,7 @@ function gridCard(item) {
   a.href = url;
   a.setAttribute('aria-label', title);
   a.innerHTML = `
-    <img class="card-img" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async"/>
+    <img class="card-img" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
     <div class="card-body">
       ${chip}${tags}
       <h3 class="card-title">${escapeHtml(title)}</h3>
@@ -369,7 +368,16 @@ async function renderHome() {
   }
 }
 
-// ---- List page (search + filter) ----
+// ---- List page (search + category + TAGS) ----
+function parseTagsParam(value) {
+  // ?tag=local,events  -> ['local','events']
+  if (!value) return [];
+  return value
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
 async function renderListPage() {
   const container = document.getElementById('news-list');
   if (!container) return;
@@ -377,31 +385,72 @@ async function renderListPage() {
   const params = new URLSearchParams(location.search);
   const q = params.get('q')?.trim();
   const activeCat = params.get('category')?.trim();
+  const tagParam = params.get('tag')?.trim(); // NEW
+  const activeTags = parseTagsParam(tagParam).map(t => t.toLowerCase());
 
   const data = await loadVisibleSorted();
 
+  // Category chips
   const chipWrap = document.getElementById('category-chips');
   if (chipWrap) {
     const cats = [...new Set(data.map(i => (i.meta.Category || '').trim()).filter(Boolean))].sort();
     chipWrap.innerHTML = cats.map(c => `<a href="newsletters.html?category=${encodeURIComponent(c)}">${escapeHtml(c)}</a>`).join('');
   }
 
+  // NEW: Tag cloud
+  const tagWrap = document.getElementById('tag-cloud');
+  if (tagWrap) {
+    const counts = new Map();
+    for (const i of data) {
+      for (const t of (i.meta._tags || [])) {
+        const key = t.trim();
+        if (!key) continue;
+        counts.set(key, (counts.get(key) || 0) + 1);
+      }
+    }
+    const list = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20);
+    tagWrap.innerHTML = list.map(([t]) => {
+      const isOn = activeTags.includes(t.toLowerCase());
+      const url = new URL(location.href);
+      url.searchParams.set('tag', isOn
+        ? activeTags.filter(x => x !== t.toLowerCase()).join(',')
+        : [...activeTags, t.toLowerCase()].join(','));
+      return `<a href="${url.pathname + url.search}" aria-pressed="${isOn ? 'true' : 'false'}">${escapeHtml(t)}</a>`;
+    }).join('') || '<span class="muted">No tags yet</span>';
+  }
+
+  // Filter by category
   let filtered = activeCat
     ? data.filter(i => (i.meta.Category || '').trim().toLowerCase() === activeCat.toLowerCase())
     : data;
-  if (q) filtered = searchItems(filtered, q);
 
-  const info = document.getElementById('active-filter');
-  if (info) {
-    if (q && activeCat) info.textContent = `${filtered.length} result(s) for “${q}” in ${activeCat}`;
-    else if (q) info.textContent = `${filtered.length} result(s) for “${q}”`;
-    else if (activeCat) info.textContent = `Filtering by category: ${activeCat} (${filtered.length})`;
-    else info.textContent = '';
+  // Filter by TAGS (OR logic within tags)
+  if (activeTags.length) {
+    filtered = filtered.filter(i => {
+      const tags = (i.meta._tags || []).map(t => t.toLowerCase());
+      return activeTags.some(t => tags.includes(t));
+    });
   }
 
+  // Search (after category/tags)
+  if (q) filtered = searchItems(filtered, q);
+
+  // Summary
+  const info = document.getElementById('active-filter');
+  if (info) {
+    const parts = [];
+    if (q) parts.push(`“${q}”`);
+    if (activeCat) parts.push(`Category: ${activeCat}`);
+    if (activeTags.length) parts.push(`Tags: ${activeTags.join(', ')}`);
+    info.textContent = parts.length
+      ? `${filtered.length} result(s) — ${parts.join(' • ')}`
+      : '';
+  }
+
+  // Render
   container.innerHTML = '';
   if (!filtered.length) {
-    container.innerHTML = `<p class="muted">No items found${q ? ` for “${escapeHtml(q)}”` : ''}${activeCat ? ` in ${escapeHtml(activeCat)}` : ''}.</p>`;
+    container.innerHTML = `<p class="muted">No items found${q ? ` for “${escapeHtml(q)}”` : ''}${activeCat ? ` in ${escapeHtml(activeCat)}` : ''}${activeTags.length ? ` with tags: ${escapeHtml(activeTags.join(', '))}` : ''}.</p>`;
     return;
   }
   for (const item of filtered) container.appendChild(gridCard(item));
@@ -475,19 +524,7 @@ function renderArticle(container, filename, meta, body) {
     ${meta.Subtitle ? `<p class="muted" style="margin:.2rem 0 1rem 0">${escapeHtml(meta.Subtitle)}</p>` : ''}
     <p class="muted" style="margin:.2rem 0 1rem 0">${escapeHtml(metaLine)} • ${escapeHtml(reading)}</p>
     <div>${bodyHtml}</div>
-  `;
-
-  document.title = `${meta.Title || filename} — Sleepy Hollow Media`;
-}
-async function initArticlePage() {
-  const content = document.getElementById('article-content');
-  if (!content) return;
-
-  const params = new URLSearchParams(window.location.search);
-  const raw = params.get('article');
-  const file = sanitizeFilename(raw);
-  if (!file) {
-    content.innerHTML = `<p class="muted">Missing or invalid article parameter.</p>`;
+  </p>`;
     return;
   }
 
@@ -499,7 +536,7 @@ async function initArticlePage() {
     console.error(e);
     content.innerHTML = `<p class="muted">Could not load this article.</p>`;
   }
-}
+
 
 // ---- Boot ----
 document.addEventListener('DOMContentLoaded', async () => {

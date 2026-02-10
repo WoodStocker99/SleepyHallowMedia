@@ -1,22 +1,29 @@
 <!doctype html>
 <html lang="en" data-theme="light">
 <head>
-  <link rel="icon" href="/SleepyHallowMedia/favicon.ico" />
+  <!-- Favicon (optional) -->
+  <link rel="icon" href="/SleepyHallowMedia/favicon.ico">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Sleepy Hollow Media — All Newsletters</title>
+
+  <!-- Fonts (optional; self-host later for perf) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body data-page="list">
+
   <a class="skip-link" href="#main">Skip to content</a>
 
   <header class="site-header" role="banner">
     <div class="wrap header-row">
       <a class="brand" href="index.html">
-        <img class="brand-mark" src="assets/logo.png" alt="" />
+        <img class="brand-mark" src="assets/logo.png" alt="" width="34" height="34">
         <span class="brand-name">Sleepy Hollow Media</span>
       </a>
+
       <nav class="primary-nav" aria-label="Primary">
         <a href="index.html" data-nav="home">Home</a>
         <a href="newsletters.html" data-nav="newsletters">Newsletters</a>
@@ -24,6 +31,7 @@
         <a href="newsletters.html?category=Culture">Culture</a>
         <a href="newsletters.html?category=Opinion">Opinion</a>
       </nav>
+
       <div class="header-tools">
         <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false">
           <span class="theme-icon" aria-hidden="true">🌙</span>
@@ -31,6 +39,7 @@
         <button class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">☰</button>
       </div>
     </div>
+
     <nav id="mobile-menu" class="mobile-menu" aria-label="Mobile">
       <a href="index.html" data-nav="home">Home</a>
       <a href="newsletters.html" data-nav="newsletters">Newsletters</a>
@@ -43,11 +52,18 @@
   <main class="wrap list-page" id="main" tabindex="-1">
     <h1 class="page-title">All Newsletters</h1>
 
+    <!-- Filters / Search summary -->
     <div class="filter-row" role="region" aria-label="Filters">
       <div id="active-filter" class="muted"></div>
+
+      <!-- Category chips (auto) -->
       <div id="category-chips" class="trend-tags" style="margin-top:.4rem;"></div>
+
+      <!-- NEW: Tag cloud (auto) -->
+      <div id="tag-cloud" class="trend-tags" style="margin-top:.4rem;"></div>
     </div>
 
+    <!-- Results -->
     <div id="news-list" class="cards-grid"></div>
   </main>
 
@@ -57,8 +73,10 @@
     </div>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js" crossorigin="anonymous"></script>
+  <!-- libs -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+
   <script src="script.js"></script>
   <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
