@@ -1,4 +1,4 @@
-// Sleepy Hollow Media — Magazine Script
+// Sleepy Hollow Media — Magazine Script (THUMBNAIL FIX)
 // - Client-side search (title/subtitle/author/category/tags/body snippet)
 // - Category filter + chips
 // - Trending topics (by category frequency)
@@ -127,7 +127,6 @@ function hijackHeaderSearch(){
   const form = document.getElementById('site-search');
   if (!form) return;
   form.addEventListener('submit',(e)=>{
-    // Ensure empty queries don’t navigate
     const input = form.querySelector('input[name="q"]');
     if (!input || !input.value.trim()){
       e.preventDefault();
@@ -143,7 +142,6 @@ async function loadVisibleSorted(){
     manifest.map(async f=>{
       try{
         const {meta, body} = await loadNewsletter(f);
-        // normalize helpful fields
         meta._dateObj = meta.Date ? new Date(meta.Date) : null;
         meta._tags = splitTags(meta.Tags);
         return { file: f, meta, body };
@@ -168,7 +166,6 @@ async function loadVisibleSorted(){
 // ---- Search ----
 function normalize(str){ return String(str ?? '').toLowerCase(); }
 function itemScore(item, q){
-  // Simple ranking: title > subtitle > author > category > tags > body
   const { meta, body } = item;
   const nQ = normalize(q);
   let score = 0;
@@ -178,7 +175,6 @@ function itemScore(item, q){
   addIf(normalize(meta.Author).includes(nQ), 4);
   addIf(normalize(meta.Category).includes(nQ), 4);
   addIf((meta._tags || []).some(t=>normalize(t).includes(nQ)), 3);
-  // check first ~800 chars of body to avoid heavy scoring
   addIf(normalize(body).slice(0, 800).includes(nQ), 1);
   return score;
 }
@@ -192,7 +188,7 @@ function searchItems(items, query){
   return ranked.map(x => x.it);
 }
 
-// ---- Homepage builders ----
+// ---- Homepage builders (FIXED IMG TAGS) ----
 function leadCardHTML(item){
   const { file, meta } = item;
   const title = meta.Title || file;
@@ -202,7 +198,7 @@ function leadCardHTML(item){
   const img = resolveThumbPath(meta.Thumbnail);
   return `
     <a class="lead-link" href="article.html?article=${encodeURIComponent(file)}" aria-label="${escapeHtml(title)}">
-      <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="eager" decoding="async" width="1600" height="900">
+      <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
     </a>
     <div class="lead-body">
       ${cat ? `<span class="kicker">${escapeHtml(cat)}</span>` : ''}
@@ -217,8 +213,8 @@ function topCardHTML(item){
   const date = formatDate(meta.Date);
   const author = meta.Author || 'Staff';
   return `
-    <a href="article.html?article=${encodeURIComponent(file)}" aria-label="${escapeHtml(title)}">
-      <img class="top-thumb" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" width="320" height="200">
+    <a class="top-media" href="article.html?article=${encodeURIComponent(file)}" aria-label="${escapeHtml(title)}">
+      <img class="top-thumb" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
     </a>
     <div class="top-body">
       <h3 class="top-title"><a href="article.html?article=${encodeURIComponent(file)}">${escapeHtml(title)}</a></h3>
@@ -238,7 +234,7 @@ function gridCard(item){
   a.className = 'card';
   a.href = `article.html?article=${encodeURIComponent(file)}`;
   a.innerHTML = `
-    <img class="card-img" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" width="800" height="450">
+    <img class="card-img" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
     <div class="card-body">
       ${chip}${tags}
       <h3 class="card-title">${escapeHtml(title)}</h3>
@@ -251,10 +247,10 @@ async function renderHome(){
   const data = await loadVisibleSorted();
   if (!data.length) return;
 
-  // Lead + top
   const leadEl = document.getElementById('lead-story');
   const topEl = document.getElementById('top-stories');
   if (leadEl) leadEl.innerHTML = leadCardHTML(data[0]);
+
   if (topEl){
     topEl.innerHTML = '';
     for (const item of data.slice(1,5)){
@@ -265,7 +261,6 @@ async function renderHome(){
     }
   }
 
-  // Latest grid
   const latest = document.getElementById('latest-grid');
   if (latest){
     latest.innerHTML = '';
@@ -274,7 +269,6 @@ async function renderHome(){
     }
   }
 
-  // Sidebar latest
   const sList = document.getElementById('sidebar-latest');
   if (sList){
     sList.innerHTML = '';
@@ -287,7 +281,6 @@ async function renderHome(){
     }
   }
 
-  // Trending (top 6 categories)
   const trend = document.getElementById('trend-topics');
   if (trend){
     const counts = new Map();
@@ -304,6 +297,29 @@ async function renderHome(){
 }
 
 // ---- List page (search + filter) ----
+function normalize(str){ return String(str ?? '').toLowerCase(); }
+function itemScore(item, q){
+  const { meta, body } = item;
+  const nQ = normalize(q);
+  let score = 0;
+  const addIf = (cond, weight)=>{ if (cond) score += weight; };
+  addIf(normalize(meta.Title).includes(nQ), 8);
+  addIf(normalize(meta.Subtitle).includes(nQ), 5);
+  addIf(normalize(meta.Author).includes(nQ), 4);
+  addIf(normalize(meta.Category).includes(nQ), 4);
+  addIf((meta._tags || []).some(t=>normalize(t).includes(nQ)), 3);
+  addIf(normalize(body).slice(0, 800).includes(nQ), 1);
+  return score;
+}
+function searchItems(items, query){
+  const q = query?.trim();
+  if (!q) return items;
+  const ranked = items
+    .map(it => ({ it, s: itemScore(it, q) }))
+    .filter(x => x.s > 0)
+    .sort((a,b)=> b.s - a.s || (b.it.meta._dateObj - a.it.meta._dateObj));
+  return ranked.map(x => x.it);
+}
 async function renderListPage(){
   const container = document.getElementById('news-list');
   if (!container) return;
@@ -314,22 +330,18 @@ async function renderListPage(){
 
   const data = await loadVisibleSorted();
 
-  // Build category chips
   const chipWrap = document.getElementById('category-chips');
   if (chipWrap){
     const cats = [...new Set(data.map(i => (i.meta.Category || '').trim()).filter(Boolean))].sort();
-    chipWrap.innerHTML = cats.map(c => `<a href="newsletters.html?category=${encodeURIComponent(c)}" class="chip">${escapeHtml(c)}</a>`).join('');
+    chipWrap.innerHTML = cats.map(c => `<a href="newsletters.html?category=${encodeURIComponent(c)}">${escapeHtml(c)}</a>`).join('');
   }
 
-  // Filter by category
   let filtered = activeCat
     ? data.filter(i => (i.meta.Category || '').trim().toLowerCase() === activeCat.toLowerCase())
     : data;
 
-  // Search
   if (q) filtered = searchItems(filtered, q);
 
-  // Summary
   const info = document.getElementById('active-filter');
   if (info){
     if (q && activeCat) info.textContent = `${filtered.length} result(s) for “${q}” in ${activeCat}`;
@@ -338,7 +350,6 @@ async function renderListPage(){
     else info.textContent = '';
   }
 
-  // Render
   container.innerHTML = '';
   if (!filtered.length){
     container.innerHTML = `<p class="muted">No items found${q ? ` for “${escapeHtml(q)}”` : ''}${activeCat ? ` in ${escapeHtml(activeCat)}` : ''}.</p>`;
@@ -372,7 +383,13 @@ function populateArticleHero(meta){
   if (cat){ catEl.hidden = false; catEl.textContent = cat; } else { catEl.hidden = true; }
 
   const img = resolveThumbPath(meta.Thumbnail);
-  if (bg) bg.setAttribute('src', encodeURI(img));
+  if (bg){
+    // Ensure .a-hero-bg is an <img> element in article.html
+    bg.setAttribute('src', encodeURI(img));
+    bg.setAttribute('alt', '');
+    bg.setAttribute('loading', 'lazy');
+    bg.setAttribute('decoding', 'async');
+  }
 }
 function buildShareLinks(title){
   const url = location.href;
@@ -421,7 +438,7 @@ async function initArticlePage(){
   const content = document.getElementById('article-content');
   if (!content) return;
 
-  const params = new URLSearchParams(location.search);
+  const params = new URLSearchParams(window.location.search);
   const file = sanitizeFilename(params.get('article'));
   if (!file){
     content.innerHTML = `<p class="muted">Missing or invalid article parameter.</p>`;
@@ -433,7 +450,6 @@ async function initArticlePage(){
     renderArticle(content, file, parsed.meta, parsed.body);
     buildShareLinks(parsed.meta.Title || file);
 
-    // Next/Prev
     const manifest = await loadManifest();
     const idx = manifest.indexOf(file);
     const prev = document.getElementById('prev-article');
