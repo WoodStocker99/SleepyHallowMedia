@@ -3,26 +3,29 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sleepy Hollow Media — All Newsletters</title>
+  <title>Sleepy Hollow Media — Article</title>
 
   <link rel="icon" href="favicon.ico" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+
   <link rel="stylesheet" href="styles.css" />
+  <script src="script.js?v=4.4" defer></script>
 </head>
-<body data-page="list">
+<body data-page="article">
   <a class="skip-link" href="#main">Skip to content</a>
 
-  <!-- ==== Top utility / search ==== -->
+  <!-- Topbar (same search everywhere) -->
   <div class="topbar" aria-label="Site tools">
     <div class="wrap topbar-row">
       <div class="topbar-left">
         <a class="top-link" href="newsletters.html">Latest</a>
-        <a class="top-link" href="newsletters.html?tag=local">Local</a>
-        <a class="top-link" href="newsletters.html?tag=opinion">Opinion</a>
+        <a class="top-link" href="newsletters.html?tag=Local">Local</a>
+        <a class="top-link" href="newsletters.html?tag=Opinion">Opinion</a>
       </div>
 
-      <form id="site-search" class="top-search" action="newsletters.html" method="get" role="search">
+      <form id="site-search" class="top-search" role="search" action="newsletters.html" method="get">
         <label for="q" class="sr-only">Search</label>
         <input id="q" name="q" type="search" placeholder="Search…" autocomplete="off" />
         <button class="btn" type="submit" aria-label="Search">Search</button>
@@ -32,7 +35,7 @@
 
   <header class="site-header" role="banner">
     <div class="wrap header-row">
-      <a class="brand" href="index.html" aria-label="Sleepy Hollow Media Home" data-nav="home">
+      <a class="brand" href="index.html" aria-label="Home">
         <img class="brand-mark" src="assets/logo.png" alt="" />
         <span class="brand-name">Sleepy Hollow Media</span>
       </a>
@@ -53,21 +56,30 @@
     </nav>
   </header>
 
-  <main class="wrap list-page" id="main" tabindex="-1">
-    <h1 class="page-title">All Newsletters</h1>
-
-    <!-- Filters / Search summary -->
-    <div class="filter-row" role="region" aria-label="Filters">
-      <div id="active-filter" class="muted"></div>
-
-      <div class="muted" style="margin-top:.6rem">Categories</div>
-      <div id="category-chips" class="trend-tags" style="margin-top:.2rem;"></div>
-
-      <div class="muted" style="margin-top:.6rem">Tags</div>
-      <div id="tag-cloud" class="trend-tags" style="margin-top:.2rem;"></div>
+  <!-- Article hero -->
+  <section id="article-hero" class="a-hero" aria-label="Article header">
+    <img class="a-hero-bg" alt="" loading="eager" decoding="async" />
+    <div class="wrap a-hero-inner">
+      <div id="article-category" class="a-kicker" hidden></div>
+      <h1 id="article-title" class="a-title"></h1>
+      <p id="article-subtitle" class="a-sub"></p>
+      <div class="a-byline">
+        <span id="article-meta"></span>
+        <span id="article-reading-time" class="reading-time"></span>
+      </div>
     </div>
+  </section>
 
-    <div id="news-list" class="cards-grid"></div>
+  <main class="wrap article-wrap" id="main" tabindex="-1">
+    <article id="article-content" class="article-body"></article>
+
+    <aside class="share-bar" aria-label="Share this article">
+      <button class="share-btn" data-share="copy">Copy Link</button>
+      <a class="share-btn" data-share="email" target="_blank" rel="noopener">Email</a>
+      <a class="share-btn" data-share="reddit" target="_blank" rel="noopener">Reddit</a>
+      <a class="share-btn" data-share="x" target="_blank" rel="noopener">X</a>
+      <span id="share-feedback" class="share-feedback" role="status" aria-live="polite"></span>
+    </aside>
   </main>
 
   <footer class="site-footer">
@@ -76,9 +88,6 @@
     </div>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js" crossorigin="anonymous"></script>
-  <script src="script.js?v=4.2" defer></script>
   <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>

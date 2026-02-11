@@ -6,27 +6,30 @@
   <title>Sleepy Hollow Media — Independent Reporting</title>
 
   <link rel="icon" href="favicon.ico" />
-  <!-- Optional fonts (self-host for best perf later) -->
+  <!-- Optional fonts (self-host for perf later) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="styles.css" />
+  <script src="script.js?v=4.4" defer></script>
 </head>
 <body>
+  <!-- Skip link -->
   <a class="skip-link" href="#main">Skip to content</a>
 
-  <!-- ==== Top utility / tag cloud + search (visible on all pages) ==== -->
+  <!-- ==== Top utility / search (visible on all pages) ==== -->
   <div class="topbar" aria-label="Site tools">
     <div class="wrap topbar-row">
       <div class="topbar-left">
-        <!-- Quick examples; change to tags you actually use -->
         <a class="top-link" href="newsletters.html">Latest</a>
-        <a class="top-link" href="newsletters.html?tag=local">Local</a>
-        <a class="top-link" href="newsletters.html?tag=opinion">Opinion</a>
+        <!-- Quick example tag shortcuts; change to tags you actually use -->
+        <a class="top-link" href="newsletters.html?tag=Local">Local</a>
+        <a class="top-link" href="newsletters.html?tag=Opinion">Opinion</a>
       </div>
 
       <!-- Universal search -->
-      <form id="site-search" class="top-search" action="newsletters.html" method="get" role="search">
+      <form id="site-search" class="top-search" role="search" action="newsletters.html" method="get">
         <label for="q" class="sr-only">Search</label>
         <input id="q" name="q" type="search" placeholder="Search…" autocomplete="off" />
         <button class="btn" type="submit" aria-label="Search">Search</button>
@@ -37,7 +40,7 @@
   <!-- ==== Header / Primary Nav ==== -->
   <header class="site-header" role="banner">
     <div class="wrap header-row">
-      <a class="brand" href="index.html" aria-label="Sleepy Hollow Media Home" data-nav="home">
+      <a class="brand" href="index.html" data-nav="home" aria-label="Home">
         <img class="brand-mark" src="assets/logo.png" alt="" />
         <span class="brand-name">Sleepy Hollow Media</span>
       </a>
@@ -61,7 +64,7 @@
     </nav>
   </header>
 
-  <!-- ==== Trending TAGS (auto-built by JS) ==== -->
+  <!-- ==== Trending TAGS (auto-filled by JS) ==== -->
   <aside class="trending" aria-label="Trending tags">
     <div class="wrap">
       <strong class="trend-label">Trending:</strong>
@@ -73,21 +76,21 @@
   <main id="main" class="wrap front" tabindex="-1">
     <!-- Lead + Top stories -->
     <section class="lead-grid" aria-label="Lead story">
-      <article id="lead-story" class="lead-card"><!-- filled by JS --></article>
-      <div id="top-stories" class="top-stories"><!-- filled by JS --></div>
+      <article id="lead-story" class="lead-card"><!-- JS --></article>
+      <div id="top-stories" class="top-stories"><!-- JS --></div>
     </section>
 
     <!-- Latest + Sidebar -->
     <section class="content-grid" aria-label="Latest">
       <div class="main-col">
         <h2 class="h-section">Latest</h2>
-        <div id="latest-grid" class="cards-grid"><!-- filled by JS --></div>
+        <div id="latest-grid" class="cards-grid"><!-- JS --></div>
       </div>
 
       <aside class="side-col">
         <div class="side-panel">
           <h3 class="h-side">Latest Headlines</h3>
-          <ul id="sidebar-latest" class="side-list"><!-- filled by JS --></ul>
+          <ul id="sidebar-latest" class="side-list"><!-- JS --></ul>
         </div>
 
         <div class="side-panel signup" role="complementary" aria-label="Newsletter signup">
@@ -106,7 +109,7 @@
   <footer class="site-footer" id="footer">
     <div class="wrap footer-grid">
       <div>
-        <a class="brand" href="index.html" aria-label="Sleepy Hollow Media Home">
+        <a class="brand" href="index.html" aria-label="Home">
           <img class="brand-mark" src="assets/logo.png" alt="" />
           <span class="brand-name">Sleepy Hollow Media</span>
         </a>
@@ -121,10 +124,6 @@
     </div>
   </footer>
 
-  <!-- libs -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js" crossorigin="anonymous"></script>
-  <script src="script.js?v=4.2" defer></script>
   <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>

@@ -1,9 +1,9 @@
-/* Sleepy Hollow Media — Magazine Script (stable, fixed anchors & images)
+/* Sleepy Hollow Media — Magazine Script (stable, anchors fixed, images proper)
    - Theme (light/dark) with cookie + localStorage
    - Homepage: lead + top stories + latest + sidebar + TRENDING TAGS
    - Newsletters list: search + category chips + TAG filtering
    - Article view: hero from Thumbnail + reading time + share links
-   - No top-level await
+   - No top-level await; script loaded with defer
 */
 
 'use strict';
@@ -276,17 +276,14 @@ function leadCardHTML(item) {
   const img    = resolveThumbPath(meta.Thumbnail);
   const url    = `article.html?article=${encodeURIComponent(file)}`;
 
-  // Full-card overlay link + image + title link
   return `
-    <a class="lead-img-link" href="${url}" aria-label="${escapeHtml(title)}">
-      <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
-    </a>
+    <a class="stretched-link" href="${url}" aria-label="${escapeHtml(title)}"></a>
+    <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
     <div class="lead-body">
       ${cat ? `<span class="kicker">${escapeHtml(cat)}</span>` : ''}
       <h2 class="lead-title"><a href="${url}">${escapeHtml(title)}</a></h2>
       <div class="lead-meta">${escapeHtml(date)}${date ? ' • ' : ''}${escapeHtml(author)}</div>
     </div>
-    <a class="stretched-link" href="${url}" aria-label="${escapeHtml(title)}"></a>
   `;
 }
 
@@ -299,8 +296,8 @@ function topCardHTML(item) {
   const url    = `article.html?article=${encodeURIComponent(file)}`;
 
   return `
-    <a class="top-thumb-link" href="${url}" aria-label="${escapeHtml(title)}">
-      <img class="top-thumb" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
+    <a href="${url}" aria-label="${escapeHtml(title)}">
+      <img class="top-thumb" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
     </a>
     <div class="top-body">
       <h3 class="top-title"><a href="${url}">${escapeHtml(title)}</a></h3>
@@ -325,7 +322,7 @@ function gridCard(item) {
   a.href = url;
   a.setAttribute('aria-label', title);
   a.innerHTML = `
-    <img class="card-img" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
+    <img class="card-img" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
     <div class="card-body">
       ${chip}${tags}
       <h3 class="card-title">${escapeHtml(title)}</h3>
@@ -424,7 +421,7 @@ async function renderListPage() {
     ).join('');
   }
 
-  // Tag cloud (toggle behavior preserved, but now with real <a> anchors)
+  // Tag cloud (toggle via querystring, but always valid anchors)
   const tagWrap = document.getElementById('tag-cloud');
   if (tagWrap) {
     const counts = new Map();
@@ -492,7 +489,7 @@ function readingTimeFromText(text, wpm = 200) {
 }
 
 function populateArticleHero(meta) {
-  const bgDiv   = document.querySelector('.a-hero-bg');
+  const bg = document.querySelector('.a-hero-bg'); // <img> in article.html
   const titleEl = document.getElementById('article-title');
   const subEl   = document.getElementById('article-subtitle');
   const metaEl  = document.getElementById('article-meta');
@@ -509,11 +506,11 @@ function populateArticleHero(meta) {
   if (catEl)   { if (cat) { catEl.hidden = false; catEl.textContent = cat; } else { catEl.hidden = true; } }
 
   const img = resolveThumbPath(meta.Thumbnail);
-  if (bgDiv) {
-    // article.html uses a <div class="a-hero-bg">; apply as CSS background
-    bgDiv.style.backgroundImage = `url("${encodeURI(img)}")`;
-    bgDiv.style.backgroundSize = 'cover';
-    bgDiv.style.backgroundPosition = 'center';
+  if (bg) {
+    bg.setAttribute('src', encodeURI(img));
+    bg.setAttribute('loading', 'eager');
+    bg.setAttribute('decoding', 'async');
+    bg.setAttribute('alt', '');
   }
 }
 
