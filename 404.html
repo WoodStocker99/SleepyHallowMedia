@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Page not found — Sleepy Hallow Media</title>
+
+  <link rel="icon" href="favicon.ico" sizes="any" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=5.1" />
+
+  <meta name="robots" content="noindex">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header" role="banner">
+    <div class="wrap header-row">
+      <a class="brand" href="index.html">
+        <img class="brand-mark" src="assets/logo.png" alt="">
+        <span class="brand-name">Sleepy Hallow Media</span>
+      </a>
+      <nav class="primary-nav" aria-label="Primary">
+        <a data-nav="home" href="index.html">Home</a>
+        <a data-nav="newsletters" href="newsletters.html">Newsletters</a>
+      </nav>
+      <div class="header-tools">
+        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false">
+          <span class="theme-icon" aria-hidden="true">🌙</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap" id="main" tabindex="-1" style="padding:40px 0 60px">
+    <article class="article-body" role="status" aria-live="polite">
+      <h1 class="a-title">We can’t find that page</h1>
+      <p class="muted">It may have moved, been removed, or the URL might be mistyped.</p>
+      <p><a class="btn" href="index.html" style="text-decoration:none">← Back to Home</a></p>
+      <hr style="border:none;border-top:1px solid var(--border);margin:24px 0">
+      <form id="site-search" class="top-search" action="newsletters.html" method="get" role="search" aria-label="Search site">
+        <label for="q" class="sr-only">Search</label>
+        <input id="q" name="q" type="search" placeholder="Search…" autocomplete="off" />
+        <button class="btn" type="submit" aria-label="Search">Search</button>
+      </form>
+    </article>
+  </main>
+
+  <footer class="site-footer" id="footer">
+    <div class="wrap footer-grid">
+      <div>
+        <a class="brand" href="index.html">
+          <img class="brand-mark" src="assets/logo.png" alt="">
+          <span class="brand-name">Sleepy Hallow Media</span>
+        </a>
+        <p class="muted">Independent reporting from the Hollow.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="newsletters.html">Latest</a>
+        <a href="#donate">Donate</a>
+        <a href="#subscribe">Subscribe</a>
+      </nav>
+      <div class="copy muted">© <span id="year"></span> Sleepy Hallow Media</div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+  <script defer src="script.js?v=4.8"></script>
+</body>
+</html>
