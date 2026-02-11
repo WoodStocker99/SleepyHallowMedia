@@ -3,7 +3,7 @@
    STEP 2: Spacing & Grid consistency (8px system)
    STEP 3: Softer shadows + micro-interactions
    STEP 4: Color & Hover State Unification
-   PATCH: Horizontal overflow guard + safe wrapping + grid fixes
+   PATCH: Strict horizontal overflow fixes + mobile fallbacks
 */
 
 /* ---------- Light tokens (default) ---------- */
@@ -143,7 +143,7 @@
 *{ box-sizing: border-box; }
 html, body{ height:100%; }
 
-/* PATCH: guard against horizontal overflow globally */
+/* Guard against horizontal overflow globally */
 html, body { overflow-x: hidden; }
 
 body{
@@ -158,8 +158,17 @@ body{
   -webkit-font-smoothing: antialiased;
 }
 
-.wrap{ width: min(92%, var(--wrap)); margin: 0 auto; }
+.wrap{
+  width: min(92%, var(--wrap));
+  margin: 0 auto;
+}
 
+/* Add a tiny inner padding on the narrowest widths to prevent edge collisions */
+@media (max-width: 420px){
+  .wrap { padding-inline: var(--space-2); }
+}
+
+/* Unified link behavior */
 a{
   color: var(--link);
   text-decoration: none;
@@ -182,13 +191,7 @@ img{ display:block; max-width:100%; height:auto; }
 
 /* Smooth transitions for common components */
 a, button, .card, .top-card {
-  transition:
-    background .2s ease,
-    box-shadow .2s ease,
-    transform .15s ease,
-    color .18s ease,
-    opacity .2s ease,
-    filter .2s ease;
+  transition: background .2s ease, box-shadow .2s ease, transform .15s ease, color .18s ease, opacity .2s ease, filter .2s ease;
 }
 
 /* Prevent long words/URLs from pushing layout */
@@ -197,6 +200,7 @@ h1, h2, h3, .lead-title, .top-title, .card-title, .a-title,
 .article-body, .side-list, .trend-tags, .kicker, .chip {
   overflow-wrap: anywhere;
   word-break: break-word;
+  hyphens: auto;
 }
 
 /* Skip link */
@@ -226,6 +230,7 @@ h1, h2, h3, .lead-title, .top-title, .card-title, .a-title,
   background: color-mix(in oklab, var(--accent), black 10%);
   color:#fff;
   border-radius:8px; padding: var(--space-2) var(--space-3); min-width: 220px;
+  max-width: 100%;
 }
 .top-search .btn{
   background: var(--accent-ink); color: var(--accent);
@@ -334,19 +339,28 @@ h1, h2, h3, .lead-title, .top-title, .card-title, .a-title,
   box-shadow: var(--shadow-lg);
   display:grid; align-content:end;
   isolation: isolate;
+  max-width: 100%;
 }
 .lead-card::after{
   content:""; position:absolute; inset:0;
   background: linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.55) 100%);
   z-index: 0;
 }
-.lead-bg{ position:absolute; inset:0; object-fit:cover; width:100%; height:100%; z-index: -1; }
-.lead-body{ position:relative; color:#fff; padding: var(--space-6) var(--space-6); z-index: 1; }
+.lead-bg{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; object-position:center;
+  z-index: -1;
+  max-width: 100%;
+}
+.lead-body{
+  position:relative; color:#fff; padding: var(--space-6) var(--space-6); z-index: 1;
+}
 
 /* Full-card overlay link (keeps featured clickable) */
 .card-overlay{
   position:absolute; inset:0; z-index: 2;
   display:block; border:0; outline:none;
+  max-width: 100%;
 }
 .card-overlay:focus-visible{ outline: var(--ring); }
 
@@ -373,25 +387,33 @@ h1{
 
 .lead-meta{ opacity:.95; font-weight:600; }
 
-/* Micro-interaction: subtle lift on hover for the featured */
-.lead-card:hover .lead-bg{ transform: scale(1.02); transition: transform .4s ease; }
-.lead-card:hover{ box-shadow: var(--shadow-lg); }
+/* Hover zoom only on devices that support hover (prevents touch overflow) */
+@media (hover:hover) and (pointer:fine){
+  .lead-card:hover .lead-bg{ transform: scale(1.02); transition: transform .4s ease; }
+  .card:hover .card-img{ transform: scale(1.015); transition: transform .35s ease; }
+}
 
-/* Top stories */
-/* PATCH: avoid overflow with long text by allowing column to shrink properly */
+/* ---------- Top stories ---------- */
 .top-stories{
   display:grid; grid-template-columns:1fr; gap: var(--g-gap);
 }
 .top-card{
   display:grid;
-  grid-template-columns: 120px minmax(0,1fr); /* minmax(0,1fr) prevents overflow */
+  grid-template-columns: 120px minmax(0,1fr); /* fix overflow by allowing shrink */
   gap: var(--space-3);
   background:var(--surface);
   border:1px solid var(--border); border-radius: 10px; overflow:hidden; box-shadow: var(--shadow-sm);
+  max-width: 100%;
 }
 .top-card:hover{ box-shadow: var(--shadow-md); background: var(--surface-hover); transform: translateY(-1px); }
 .top-thumb{ width:100%; height:100%; object-fit:cover; min-height:110px; }
 .top-body{ padding: var(--space-4) var(--space-4); }
+
+/* Mobile fallback: stack image above text to avoid horizontal scroll */
+@media (max-width: 520px){
+  .top-card{ grid-template-columns: 1fr; }
+  .top-thumb{ aspect-ratio: 16 / 9; height: auto; min-height: 0; }
+}
 
 .top-title,
 .card-title{
@@ -404,12 +426,16 @@ h1{
 .top-title a:hover, .card-title a:hover{ color: var(--link-hover); }
 .top-meta{ color: var(--muted); font-size:.9rem; }
 
-/* Latest + sidebar */
+/* ---------- Latest + sidebar grid ---------- */
+/* Use minmax(0,1fr) to prevent right column from pushing layout */
 .content-grid{
-  display:grid; grid-template-columns: 2fr minmax(0,1fr); /* PATCH here too */
+  display:grid; grid-template-columns: minmax(0,2fr) minmax(0,1fr);
   gap: var(--g-gap);
+  max-width: 100%;
 }
-@media (max-width: 980px){ .content-grid{ grid-template-columns:1fr; } }
+@media (max-width: 980px){
+  .content-grid{ grid-template-columns:1fr; }
+}
 
 /* Section headers */
 .h-section{
@@ -423,17 +449,17 @@ h1{
 .cards-grid{
   display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
   gap: var(--g-gap);
+  max-width: 100%;
 }
 .card{
   display:flex; flex-direction:column; background:var(--surface);
   border:1px solid var(--border); border-radius:10px; overflow:hidden; box-shadow: var(--shadow-sm);
+  max-width: 100%;
 }
 .card:hover{ transform: translateY(-2px); box-shadow: var(--shadow-md); background: var(--surface-hover); }
 .card-img{
   width:100%; aspect-ratio:16/9; object-fit:cover; background:#dde7ef;
-  transition: transform .35s ease;
 }
-.card:hover .card-img{ transform: scale(1.015); }
 :root[data-theme="dark"] .card-img{ background:#1b2738; }
 .card-body{
   padding: var(--space-4) var(--space-5) var(--space-5);
@@ -454,6 +480,7 @@ h1{
 .side-panel{
   background:var(--surface); border:1px solid var(--border); border-radius:10px;
   padding: var(--space-5); box-shadow: var(--shadow-sm);
+  max-width: 100%;
 }
 .side-panel:hover{ background: var(--surface-hover); }
 .h-side{
@@ -491,10 +518,10 @@ h1{
   background: color-mix(in oklab, var(--surface), var(--accent) 12%);
   display:grid; align-content:end;
   border-bottom:1px solid var(--border);
+  max-width: 100%;
 }
 .a-hero-bg{
-  position:absolute; inset:0;
-  width:100%; height:100%;
+  position:absolute; inset:0; width:100%; height:100%;
   object-fit:cover; object-position:center;
   display:block;
 }
