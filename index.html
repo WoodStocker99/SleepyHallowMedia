@@ -6,13 +6,20 @@
   <title>Sleepy Hollow Media — Independent Reporting</title>
 
   <link rel="icon" href="favicon.ico" />
-  <!-- Optional fonts (self-host for perf later) -->
+
+  <!-- Optional fonts (self-host later for perf) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="styles.css" />
-  <script src="script.js?v=4.5" defer></script>
+  <link rel="stylesheet" href="styles.css?v=4.6" />
+
+  <!-- Markdown + Sanitizer (must come before script.js) -->
+  <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+
+  <!-- App script -->
+  <script defer src="script.js?v=4.6"></script>
 </head>
 <body>
   <!-- Skip link -->
@@ -40,14 +47,14 @@
   <!-- ==== Header / Primary Nav ==== -->
   <header class="site-header" role="banner">
     <div class="wrap header-row">
-      <a class="brand" href="index.html">
+      <a class="brand" href="index.html" data-nav="home">
         <img class="brand-mark" src="assets/logo.png" alt="" />
         <span class="brand-name">Sleepy Hollow Media</span>
       </a>
 
       <nav class="primary-nav" aria-label="Primary">
-        <a data-nav="home" href="index.html">Home</a>
-        <a data-nav="newsletters" href="newsletters.html">Newsletters</a>
+        <a href="index.html" data-nav="home">Home</a>
+        <a href="newsletters.html" data-nav="newsletters">Newsletters</a>
       </nav>
 
       <div class="header-tools">
@@ -117,8 +124,8 @@
       </div>
       <nav class="footer-links" aria-label="Footer">
         <a href="newsletters.html">Latest</a>
-        <a href="#">Donate</a>
-        <a href="#">Subscribe</a>
+        <a href="#donate">Donate</a>
+        <a href="#subscribe">Subscribe</a>
       </nav>
       <div class="copy muted">© <span id="year"></span> Sleepy Hollow Media</div>
     </div>

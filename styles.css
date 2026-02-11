@@ -1,4 +1,4 @@
-/* Sleepy Hollow Media — Magazine Theme with Light/Dark switch (Step 4) */
+/* Sleepy Hollow Media — Magazine Theme with Light/Dark switch */
 
 /* ---------- Light tokens (default) ---------- */
 :root {
@@ -7,8 +7,8 @@
   --ink: #0e1a2a;
   --muted: #6c7890;
   --border: #e7e9ef;
-  --accent: #0f3e56;      /* primary */
-  --accent-2: #d48c45;    /* warm secondary */
+  --accent: #0f3e56;
+  --accent-2: #d48c45;
   --wrap: 1200px;
   --radius: 12px;
   --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
@@ -65,7 +65,7 @@ a{ color: var(--accent); text-decoration: none; }
 a:hover{ text-decoration: underline; }
 img{ display:block; max-width:100%; height:auto; }
 
-/* Smooth out common hover state movement */
+/* Smooth hover */
 a, button, .card, .top-card { transition: background .2s ease, box-shadow .2s ease, transform .15s ease, color .2s ease; }
 
 /* Skip link */
@@ -114,9 +114,7 @@ a, button, .card, .top-card { transition: background .2s ease, box-shadow .2s ea
 .primary-nav{ display:flex; gap:1.1rem; align-items:center; }
 .primary-nav a{ color:var(--ink); font-weight:600; }
 .primary-nav a[aria-current="page"]{ color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-.nav-toggle{
-  display:none; background:none; border:1px solid var(--border); border-radius:8px; padding:.3rem .5rem; color:var(--ink);
-}
+.nav-toggle{ display:none; background:none; border:1px solid var(--border); border-radius:8px; padding:.3rem .5rem; color:var(--ink); }
 .mobile-menu{ display:none; border-top:1px solid var(--border); background:var(--surface); padding:.6rem 0; }
 .mobile-menu a{ display:block; padding:.45rem 4%; color:var(--ink); font-weight:600; }
 .header-tools{ display:flex; align-items:center; gap:.5rem; }
@@ -222,12 +220,18 @@ a, button, .card, .top-card { transition: background .2s ease, box-shadow .2s ea
 
 /* ---------- Article ---------- */
 .a-hero{
-  position:relative; min-height:240px;
+  position:relative;
+  min-height: clamp(240px, 38vw, 420px);
   background: color-mix(in oklab, var(--surface), var(--accent) 12%);
   display:grid; align-content:end;
   border-bottom:1px solid var(--border);
 }
-.a-hero-bg{ position:absolute; inset:0; background-size:cover; background-position:center; }
+.a-hero-bg{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover; object-position:center;
+  display:block;
+}
 .a-hero::after{ content:""; position:absolute; inset:0; background: linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.55) 100%); }
 .a-hero-inner{ position:relative; color:#fff; padding: 1.2rem 0 1.4rem; }
 .a-kicker{ display:inline-block; padding:.18rem .55rem; border-radius:999px; background:#ffdba8; color:#0e1a2a; font-weight:800; font-size:.8rem; margin-bottom:.6rem; }
@@ -243,17 +247,12 @@ a, button, .card, .top-card { transition: background .2s ease, box-shadow .2s ea
 .article-body p{ margin: 1rem 0; }
 .article-body h2{ margin: 1.4rem 0 .6rem; font:700 1.5rem "Playfair Display", Georgia, serif; }
 .article-body h3{ margin: 1.1rem 0 .5rem; font:700 1.25rem "Playfair Display", Georgia, serif; }
-.article-body blockquote{
-  margin:1.2rem 0; padding:.9rem 1rem; border-left:4px solid var(--accent-2);
-  background:#fff5eb; border-radius:8px;
-}
+.article-body blockquote{ margin:1.2rem 0; padding:.9rem 1rem; border-left:4px solid var(--accent-2); background:#fff5eb; border-radius:8px; }
 figure{ margin:1.1rem 0; }
 figcaption{ color: var(--muted); font-size:.9rem; margin-top:.3rem; }
 
-/* ---------- Share (styled) ---------- */
-.share-bar{
-  display:flex; gap:.5rem; flex-wrap:wrap; margin:.9rem 0 1.1rem;
-}
+/* Share */
+.share-bar{ display:flex; gap:.5rem; flex-wrap:wrap; margin:.9rem 0 1.1rem; }
 .share-btn{
   display:inline-flex; align-items:center; gap:.45rem;
   padding:.5rem .85rem; border-radius:999px; font-weight:800; font-size:.92rem;
@@ -280,36 +279,8 @@ figcaption{ color: var(--muted); font-size:.9rem; margin-top:.3rem; }
 /* ---------- Utility ---------- */
 .sr-only{ position:absolute!important; height:1px; width:1px; overflow:hidden; clip:rect(1px,1px,1px,1px); white-space:nowrap; }
 [aria-disabled="true"], .disabled{ opacity:.6; pointer-events:none; }
-/* Make a link cover its parent card (used for lead card) */
-.stretched-link{ position:absolute; inset:0; z-index:2; color:transparent; }
-.stretched-link:focus{ outline: 2px solid #fff; outline-offset: -2px; }
 
-/* === Article hero (img-based) === */
-.a-hero{
-  position:relative;
-  /* reserve height to avoid CLS; adjust upper bound if you prefer a taller hero */
-  min-height: clamp(240px, 38vw, 420px);
-  background: color-mix(in oklab, var(--surface), var(--accent) 12%);
-  display:grid; align-content:end;
-  border-bottom:1px solid var(--border);
-}
-.a-hero-bg{
-  /* it's an <img>, not a <div> now: make it fill and crop correctly */
-  position:absolute; inset:0;
-  width:100%; height:100%;
-  object-fit:cover; object-position:center;
-  display:block;
-}
-.a-hero::after{
-  content:""; position:absolute; inset:0;
-  background: linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.55) 100%);
-}
-.a-hero-inner{
-  position:relative; color:#fff;
-  padding: 1.2rem 0 1.4rem;
-}
-
-/* === Card images (ensure consistent cropping) === */
+/* Ensure card images always crop correctly */
 .lead-card { position:relative; overflow:hidden; }
 .lead-bg   { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .top-thumb { width:100%; height:100%; object-fit:cover; display:block; }

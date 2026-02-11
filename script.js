@@ -169,6 +169,7 @@ function renderMarkdownSafe(text){
     const raw = window.marked.parse(String(text ?? ''));
     return window.DOMPurify.sanitize(raw, { ALLOWED_ATTR: ['href','src','alt','title','class'] });
   }
+  // Fallback if libraries fail to load: paragraphize (no markdown)
   return String(text ?? '').split(/\n\s*\n/).map(p => `<p>${escapeHtml(p.trim())}</p>`).join('');
 }
 
@@ -272,10 +273,9 @@ function leadCardHTML(item){
   const author = meta.Author || 'Staff';
   const img    = resolveThumbPath(meta.Thumbnail);
   const url    = `article.html?article=${encodeURIComponent(file)}`;
-
   return `
     <a class="stretched-link" href="${escapeAttr(url)}" aria-label="${escapeAttr(title)}"></a>
-    <img class="lead-bg" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async">
+    <img class="lead-bg" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async" />
     <div class="lead-body">
       ${cat ? `<span class="kicker">${escapeHtml(cat)}</span>` : ''}
       <h2 class="lead-title"><a href="${escapeAttr(url)}">${escapeHtml(title)}</a></h2>
@@ -291,10 +291,9 @@ function topCardHTML(item){
   const date   = formatDate(meta.Date);
   const author = meta.Author || 'Staff';
   const url    = `article.html?article=${encodeURIComponent(file)}`;
-
   return `
     <a href="${escapeAttr(url)}" aria-label="${escapeAttr(title)}">
-      <img class="top-thumb" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async">
+      <img class="top-thumb" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async" />
     </a>
     <div class="top-body">
       <h3 class="top-title"><a href="${escapeAttr(url)}">${escapeHtml(title)}</a></h3>
@@ -319,7 +318,7 @@ function gridCard(item){
   a.href = url;
   a.setAttribute('aria-label', title);
   a.innerHTML = `
-    <img class="card-img" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async">
+    <img class="card-img" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async" />
     <div class="card-body">
       ${chip}${tags}
       <h3 class="card-title">${escapeHtml(title)}</h3>
@@ -384,7 +383,7 @@ async function renderHome(){
     }
     const topTags = [...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6);
     trend.innerHTML = topTags.length
-      ? topTags.map(([k]) => `<a href="newsletters.html?tag=${encodeURIComponent(k)}" class="chip">${escapeHtml(k)}</a>`).join('')
+      ? topTags.map(([k]) => `<a href="newsletters.html?tag=${encodeURIComponent(k)}">${escapeHtml(k)}</a>`).join('')
       : '<span class="muted">No trending tags yet</span>';
   }
 }
@@ -414,7 +413,7 @@ async function renderListPage(){
   if (chipWrap){
     const cats = [...new Set(data.map(i => (i.meta.Category || '').trim()).filter(Boolean))].sort();
     chipWrap.innerHTML = cats.map(c =>
-      `<a href="newsletters.html?category=${encodeURIComponent(c)}" class="chip">${escapeHtml(c)}</a>`
+      `<a href="newsletters.html?category=${encodeURIComponent(c)}">${escapeHtml(c)}</a>`
     ).join('');
   }
 
@@ -437,7 +436,7 @@ async function renderListPage(){
           const curr = parseTagsParam(url.searchParams.get('tag') || '').map(x => x.toLowerCase());
           const next = on ? curr.filter(x => x !== t.toLowerCase()) : [...new Set([...curr, t.toLowerCase()])];
           if (next.length) url.searchParams.set('tag', next.join(',')); else url.searchParams.delete('tag');
-          return `<a href="${escapeAttr(url.pathname + url.search)}" class="chip">${escapeHtml(t)}</a>`;
+          return `<a href="${escapeAttr(url.pathname + url.search)}">${escapeHtml(t)}</a>`;
         }).join('')
       : '<span class="muted">No tags yet</span>';
   }
@@ -577,7 +576,7 @@ async function initArticlePage(){
 // -----------------------------
 // Boot (no awaits here)
 // -----------------------------
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', ()=>{
   initTheme();
   initMobile();
   markCurrentNav();

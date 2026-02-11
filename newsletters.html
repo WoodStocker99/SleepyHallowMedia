@@ -10,8 +10,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="styles.css" />
-  <script src="script.js?v=4.5" defer></script>
+  <link rel="stylesheet" href="styles.css?v=4.6" />
+
+  <!-- Markdown + Sanitizer -->
+  <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+
+  <script defer src="script.js?v=4.6"></script>
 </head>
 <body data-page="list">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -35,13 +40,13 @@
 
   <header class="site-header" role="banner">
     <div class="wrap header-row">
-      <a class="brand" href="index.html">
+      <a class="brand" href="index.html" data-nav="home">
         <img class="brand-mark" src="assets/logo.png" alt="" />
         <span class="brand-name">Sleepy Hollow Media</span>
       </a>
       <nav class="primary-nav" aria-label="Primary">
-        <a data-nav="home" href="index.html">Home</a>
-        <a data-nav="newsletters" href="newsletters.html">Newsletters</a>
+        <a href="index.html" data-nav="home">Home</a>
+        <a href="newsletters.html" data-nav="newsletters">Newsletters</a>
       </nav>
       <div class="header-tools">
         <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false">
