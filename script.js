@@ -1,4 +1,4 @@
-/* Sleepy Hollow Media — Magazine Script (stable, complete)
+/* Sleepy Hollow Media — Magazine Script (stable, fixed anchors & images)
    - Theme (light/dark) with cookie + localStorage
    - Homepage: lead + top stories + latest + sidebar + TRENDING TAGS
    - Newsletters list: search + category chips + TAG filtering
@@ -74,10 +74,10 @@ function initTheme() {
 function escapeHtml(str) {
   if (str == null) return '';
   return String(str)
-    .replace(/&/g, '&')
-    .replace(/</g, '<')
-    .replace(/>/g, '>')
-    .replace(/"/g, '"')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
 
@@ -276,14 +276,17 @@ function leadCardHTML(item) {
   const img    = resolveThumbPath(meta.Thumbnail);
   const url    = `article.html?article=${encodeURIComponent(file)}`;
 
+  // Full-card overlay link + image + title link
   return `
-    ${encodeURI(img)}
+    <a class="lead-img-link" href="${url}" aria-label="${escapeHtml(title)}">
+      <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
+    </a>
     <div class="lead-body">
       ${cat ? `<span class="kicker">${escapeHtml(cat)}</span>` : ''}
-      <h2 class="lead-title">${url}${escapeHtml(title)}</a></h2>
+      <h2 class="lead-title"><a href="${url}">${escapeHtml(title)}</a></h2>
       <div class="lead-meta">${escapeHtml(date)}${date ? ' • ' : ''}${escapeHtml(author)}</div>
     </div>
-    ${url}</a>
+    <a class="stretched-link" href="${url}" aria-label="${escapeHtml(title)}"></a>
   `;
 }
 
@@ -296,11 +299,11 @@ function topCardHTML(item) {
   const url    = `article.html?article=${encodeURIComponent(file)}`;
 
   return `
-    ${url}
-      ${encodeURI(img)}
+    <a class="top-thumb-link" href="${url}" aria-label="${escapeHtml(title)}">
+      <img class="top-thumb" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
     </a>
     <div class="top-body">
-      <h3 class="top-title">${url}${escapeHtml(title)}</a></h3>
+      <h3 class="top-title"><a href="${url}">${escapeHtml(title)}</a></h3>
       <div class="top-meta">${escapeHtml(date)}${date ? ' • ' : ''}${escapeHtml(author)}</div>
     </div>
   `;
@@ -322,7 +325,7 @@ function gridCard(item) {
   a.href = url;
   a.setAttribute('aria-label', title);
   a.innerHTML = `
-    ${encodeURI(img)}
+    <img class="card-img" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async">
     <div class="card-body">
       ${chip}${tags}
       <h3 class="card-title">${escapeHtml(title)}</h3>
@@ -368,7 +371,7 @@ async function renderHome() {
       const li = document.createElement('li');
       const date = formatDate(item.meta.Date);
       const url  = `article.html?article=${encodeURIComponent(item.file)}`;
-      li.innerHTML = `${url}${escapeHtml(item.meta.Title || item.file)}</a>
+      li.innerHTML = `<a href="${url}">${escapeHtml(item.meta.Title || item.file)}</a>
         <div class="muted" style="font-size:.85rem">${escapeHtml(date)}</div>`;
       sList.appendChild(li);
     }
@@ -387,7 +390,7 @@ async function renderHome() {
     }
     const topTags = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
     trend.innerHTML = topTags.length
-      ? topTags.map(([k]) => `newsletters.html?tag=${encodeURIComponent(k)}${escapeHtml(k)}</a>`).join('')
+      ? topTags.map(([k]) => `<a href="newsletters.html?tag=${encodeURIComponent(k)}">${escapeHtml(k)}</a>`).join('')
       : '<span class="muted">No trending tags yet</span>';
   }
 }
@@ -417,11 +420,11 @@ async function renderListPage() {
   if (chipWrap) {
     const cats = [...new Set(data.map(i => (i.meta.Category || '').trim()).filter(Boolean))].sort();
     chipWrap.innerHTML = cats.map(c =>
-      `newsletters.html?category=${encodeURIComponent(c)}${escapeHtml(c)}</a>`
+      `<a href="newsletters.html?category=${encodeURIComponent(c)}">${escapeHtml(c)}</a>`
     ).join('');
   }
 
-  // Tag cloud
+  // Tag cloud (toggle behavior preserved, but now with real <a> anchors)
   const tagWrap = document.getElementById('tag-cloud');
   if (tagWrap) {
     const counts = new Map();
@@ -440,7 +443,7 @@ async function renderListPage() {
           const current = parseTagsParam(url.searchParams.get('tag') || '').map(x => x.toLowerCase());
           const next = isOn ? current.filter(x => x !== t.toLowerCase()) : [...new Set([...current, t.toLowerCase()])];
           if (next.length) url.searchParams.set('tag', next.join(',')); else url.searchParams.delete('tag');
-          return `${url.pathname + url.search}${escapeHtml(t)}</a>`;
+          return `<a href="${url.pathname + url.search}">${escapeHtml(t)}</a>`;
         }).join('')
       : '<span class="muted">No tags yet</span>';
   }
@@ -507,6 +510,7 @@ function populateArticleHero(meta) {
 
   const img = resolveThumbPath(meta.Thumbnail);
   if (bgDiv) {
+    // article.html uses a <div class="a-hero-bg">; apply as CSS background
     bgDiv.style.backgroundImage = `url("${encodeURI(img)}")`;
     bgDiv.style.backgroundSize = 'cover';
     bgDiv.style.backgroundPosition = 'center';
