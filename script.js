@@ -1,9 +1,9 @@
-/* Sleepy Hollow Media — Magazine Script (stable, anchors fixed, images proper)
+/* Sleepy Hollow Media — Magazine Script (stable, anchors & images correct)
    - Theme (light/dark) with cookie + localStorage
    - Homepage: lead + top stories + latest + sidebar + TRENDING TAGS
    - Newsletters list: search + category chips + TAG filtering
    - Article view: hero from Thumbnail + reading time + share links
-   - No top-level await; script loaded with defer
+   - No top-level await; loaded with defer
 */
 
 'use strict';
@@ -79,6 +79,10 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+function escapeAttr(str) {
+  // Attribute-safe escape
+  return escapeHtml(str).replace(/`/g, '&#96;');
 }
 
 // Accepts: "funtext.txt", "newsletters/funtext.txt", or "/newsletters/funtext.txt"
@@ -276,12 +280,13 @@ function leadCardHTML(item) {
   const img    = resolveThumbPath(meta.Thumbnail);
   const url    = `article.html?article=${encodeURIComponent(file)}`;
 
+  // Full-card overlay link + image + title link
   return `
-    <a class="stretched-link" href="${url}" aria-label="${escapeHtml(title)}"></a>
-    <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
+    <a class="stretched-link" href="${escapeAttr(url)}" aria-label="${escapeAttr(title)}"></a>
+    <img class="lead-bg" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async" />
     <div class="lead-body">
       ${cat ? `<span class="kicker">${escapeHtml(cat)}</span>` : ''}
-      <h2 class="lead-title"><a href="${url}">${escapeHtml(title)}</a></h2>
+      <h2 class="lead-title"><a href="${escapeAttr(url)}">${escapeHtml(title)}</a></h2>
       <div class="lead-meta">${escapeHtml(date)}${date ? ' • ' : ''}${escapeHtml(author)}</div>
     </div>
   `;
@@ -296,11 +301,11 @@ function topCardHTML(item) {
   const url    = `article.html?article=${encodeURIComponent(file)}`;
 
   return `
-    <a href="${url}" aria-label="${escapeHtml(title)}">
-      <img class="top-thumb" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
+    <a class="img-link" href="${escapeAttr(url)}" aria-label="${escapeAttr(title)}">
+      <img class="top-thumb" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async" />
     </a>
     <div class="top-body">
-      <h3 class="top-title"><a href="${url}">${escapeHtml(title)}</a></h3>
+      <h3 class="top-title"><a href="${escapeAttr(url)}">${escapeHtml(title)}</a></h3>
       <div class="top-meta">${escapeHtml(date)}${date ? ' • ' : ''}${escapeHtml(author)}</div>
     </div>
   `;
@@ -322,7 +327,7 @@ function gridCard(item) {
   a.href = url;
   a.setAttribute('aria-label', title);
   a.innerHTML = `
-    <img class="card-img" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
+    <img class="card-img" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async" />
     <div class="card-body">
       ${chip}${tags}
       <h3 class="card-title">${escapeHtml(title)}</h3>
@@ -368,7 +373,7 @@ async function renderHome() {
       const li = document.createElement('li');
       const date = formatDate(item.meta.Date);
       const url  = `article.html?article=${encodeURIComponent(item.file)}`;
-      li.innerHTML = `<a href="${url}">${escapeHtml(item.meta.Title || item.file)}</a>
+      li.innerHTML = `<a href="${escapeAttr(url)}">${escapeHtml(item.meta.Title || item.file)}</a>
         <div class="muted" style="font-size:.85rem">${escapeHtml(date)}</div>`;
       sList.appendChild(li);
     }
@@ -421,7 +426,7 @@ async function renderListPage() {
     ).join('');
   }
 
-  // Tag cloud (toggle via querystring, but always valid anchors)
+  // Tag cloud (toggle via querystring)
   const tagWrap = document.getElementById('tag-cloud');
   if (tagWrap) {
     const counts = new Map();
@@ -440,7 +445,7 @@ async function renderListPage() {
           const current = parseTagsParam(url.searchParams.get('tag') || '').map(x => x.toLowerCase());
           const next = isOn ? current.filter(x => x !== t.toLowerCase()) : [...new Set([...current, t.toLowerCase()])];
           if (next.length) url.searchParams.set('tag', next.join(',')); else url.searchParams.delete('tag');
-          return `<a href="${url.pathname + url.search}">${escapeHtml(t)}</a>`;
+          return `<a href="${escapeAttr(url.pathname + url.search)}">${escapeHtml(t)}</a>`;
         }).join('')
       : '<span class="muted">No tags yet</span>';
   }

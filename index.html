@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
 
   <link rel="stylesheet" href="styles.css" />
-  <script src="script.js?v=4.4" defer></script>
+  <script src="script.js?v=4.5" defer></script>
 </head>
 <body>
   <!-- Skip link -->
@@ -23,13 +23,13 @@
     <div class="wrap topbar-row">
       <div class="topbar-left">
         <a class="top-link" href="newsletters.html">Latest</a>
-        <!-- Quick example tag shortcuts; change to tags you actually use -->
+        <!-- Example quick tag shortcuts; change to tags you actually use -->
         <a class="top-link" href="newsletters.html?tag=Local">Local</a>
         <a class="top-link" href="newsletters.html?tag=Opinion">Opinion</a>
       </div>
 
       <!-- Universal search -->
-      <form id="site-search" class="top-search" role="search" action="newsletters.html" method="get">
+      <form id="site-search" class="top-search" action="newsletters.html" method="get" role="search">
         <label for="q" class="sr-only">Search</label>
         <input id="q" name="q" type="search" placeholder="Search…" autocomplete="off" />
         <button class="btn" type="submit" aria-label="Search">Search</button>
@@ -40,14 +40,14 @@
   <!-- ==== Header / Primary Nav ==== -->
   <header class="site-header" role="banner">
     <div class="wrap header-row">
-      <a class="brand" href="index.html" data-nav="home" aria-label="Home">
+      <a class="brand" href="index.html">
         <img class="brand-mark" src="assets/logo.png" alt="" />
         <span class="brand-name">Sleepy Hollow Media</span>
       </a>
 
       <nav class="primary-nav" aria-label="Primary">
-        <a href="index.html" data-nav="home">Home</a>
-        <a href="newsletters.html" data-nav="newsletters">Newsletters</a>
+        <a data-nav="home" href="index.html">Home</a>
+        <a data-nav="newsletters" href="newsletters.html">Newsletters</a>
       </nav>
 
       <div class="header-tools">
@@ -59,8 +59,8 @@
     </div>
 
     <nav id="mobile-menu" class="mobile-menu" aria-label="Mobile">
-      <a href="index.html" data-nav="home">Home</a>
-      <a href="newsletters.html" data-nav="newsletters">Newsletters</a>
+      <a href="index.html">Home</a>
+      <a href="newsletters.html">Newsletters</a>
     </nav>
   </header>
 
@@ -109,7 +109,7 @@
   <footer class="site-footer" id="footer">
     <div class="wrap footer-grid">
       <div>
-        <a class="brand" href="index.html" aria-label="Home">
+        <a class="brand" href="index.html">
           <img class="brand-mark" src="assets/logo.png" alt="" />
           <span class="brand-name">Sleepy Hollow Media</span>
         </a>
