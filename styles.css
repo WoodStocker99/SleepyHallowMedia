@@ -3,6 +3,7 @@
    STEP 2: Spacing & Grid consistency (8px system)
    STEP 3: Softer shadows + micro-interactions
    STEP 4: Color & Hover State Unification
+   PATCH: Horizontal overflow guard + safe wrapping + grid fixes
 */
 
 /* ---------- Light tokens (default) ---------- */
@@ -93,7 +94,7 @@
 
   --link: var(--accent);
   --link-hover: color-mix(in oklab, var(--accent), white 15%);
-  --chip-bg: #ffdba8;        /* keep warm chip */
+  --chip-bg: #ffdba8;
   --chip-ink: #0e1a2a;
 
   --shadow-sm: 0 2px 8px rgba(0,0,0,.35);
@@ -142,6 +143,9 @@
 *{ box-sizing: border-box; }
 html, body{ height:100%; }
 
+/* PATCH: guard against horizontal overflow globally */
+html, body { overflow-x: hidden; }
+
 body{
   margin:0;
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -156,7 +160,6 @@ body{
 
 .wrap{ width: min(92%, var(--wrap)); margin: 0 auto; }
 
-/* Unified link behavior */
 a{
   color: var(--link);
   text-decoration: none;
@@ -186,6 +189,14 @@ a, button, .card, .top-card {
     color .18s ease,
     opacity .2s ease,
     filter .2s ease;
+}
+
+/* Prevent long words/URLs from pushing layout */
+h1, h2, h3, .lead-title, .top-title, .card-title, .a-title,
+.lead-meta, .top-meta, .card-meta, .a-byline,
+.article-body, .side-list, .trend-tags, .kicker, .chip {
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 /* Skip link */
@@ -367,11 +378,14 @@ h1{
 .lead-card:hover{ box-shadow: var(--shadow-lg); }
 
 /* Top stories */
+/* PATCH: avoid overflow with long text by allowing column to shrink properly */
 .top-stories{
   display:grid; grid-template-columns:1fr; gap: var(--g-gap);
 }
 .top-card{
-  display:grid; grid-template-columns: 120px 1fr; gap: var(--space-3);
+  display:grid;
+  grid-template-columns: 120px minmax(0,1fr); /* minmax(0,1fr) prevents overflow */
+  gap: var(--space-3);
   background:var(--surface);
   border:1px solid var(--border); border-radius: 10px; overflow:hidden; box-shadow: var(--shadow-sm);
 }
@@ -386,17 +400,14 @@ h1{
   font-size: var(--h3);
   margin: 0 0 var(--space-2) 0;
 }
-.top-title a, .card-title a{
-  color: var(--ink);
-}
-.top-title a:hover, .card-title a:hover{
-  color: var(--link-hover);
-}
+.top-title a, .card-title a{ color: var(--ink); }
+.top-title a:hover, .card-title a:hover{ color: var(--link-hover); }
 .top-meta{ color: var(--muted); font-size:.9rem; }
 
 /* Latest + sidebar */
 .content-grid{
-  display:grid; grid-template-columns:2fr 1fr; gap: var(--g-gap);
+  display:grid; grid-template-columns: 2fr minmax(0,1fr); /* PATCH here too */
+  gap: var(--g-gap);
 }
 @media (max-width: 980px){ .content-grid{ grid-template-columns:1fr; } }
 
