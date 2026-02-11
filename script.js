@@ -1,4 +1,4 @@
-/* Sleepy Hollow Media — Magazine Script (stable + Step 4.2 improvements)
+/* Sleepy Hallow Media — Magazine Script (stable + Step 4.2 improvements)
    - Prefetch article content on hover/focus/near-viewport
    - Use sessionStorage as a warm cache across navigation
    - Light responsive image hints (lazy-loading, sizes/decoding)
@@ -388,7 +388,7 @@ function renderArticle(container, filename, meta, body){
     <div>${bodyHtml}</div>
   `;
 
-  document.title=`${meta.Title||filename} — Sleepy Hollow Media`;
+  document.title=`${meta.Title||filename} — Sleepy Hallow Media`;
 }
 async function initArticlePage(){
   const content=document.getElementById('article-content');
