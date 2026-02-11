@@ -1,35 +1,50 @@
 <!doctype html>
 <html lang="en" data-theme="light">
 <head>
-  <!-- Favicon (optional) -->
-  <link rel="icon" href="/SleepyHallowMedia/favicon.ico">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sleepy Hollow Media — All Newsletters</title>
+  <title>Sleepy Hollow Media — Independent Reporting</title>
 
-  <!-- Fonts (optional; self-host later for perf) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.ico" />
+  <!-- Optional fonts (self-host for best perf later) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
 </head>
-<body data-page="list">
-
+<body>
   <a class="skip-link" href="#main">Skip to content</a>
 
+  <!-- ==== Top utility / tag cloud + search (visible on all pages) ==== -->
+  <div class="topbar" aria-label="Site tools">
+    <div class="wrap topbar-row">
+      <div class="topbar-left">
+        <!-- Quick examples; change to tags you actually use -->
+        <a class="top-link" href="newsletters.html">Latest</a>
+        <a class="top-link" href="newsletters.html?tag=local">Local</a>
+        <a class="top-link" href="newsletters.html?tag=opinion">Opinion</a>
+      </div>
+
+      <!-- Universal search -->
+      <form id="site-search" class="top-search" action="newsletters.html" method="get" role="search">
+        <label for="q" class="sr-only">Search</label>
+        <input id="q" name="q" type="search" placeholder="Search…" autocomplete="off" />
+        <button class="btn" type="submit" aria-label="Search">Search</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==== Header / Primary Nav ==== -->
   <header class="site-header" role="banner">
     <div class="wrap header-row">
-      <a class="brand" href="index.html">
-        <img class="brand-mark" src="assets/logo.png" alt="" width="34" height="34">
+      <a class="brand" href="index.html" aria-label="Sleepy Hollow Media Home" data-nav="home">
+        <img class="brand-mark" src="assets/logo.png" alt="" />
         <span class="brand-name">Sleepy Hollow Media</span>
       </a>
 
       <nav class="primary-nav" aria-label="Primary">
         <a href="index.html" data-nav="home">Home</a>
         <a href="newsletters.html" data-nav="newsletters">Newsletters</a>
-        <a href="newsletters.html?category=Politics">Politics</a>
-        <a href="newsletters.html?category=Culture">Culture</a>
-        <a href="newsletters.html?category=Opinion">Opinion</a>
       </nav>
 
       <div class="header-tools">
@@ -43,41 +58,73 @@
     <nav id="mobile-menu" class="mobile-menu" aria-label="Mobile">
       <a href="index.html" data-nav="home">Home</a>
       <a href="newsletters.html" data-nav="newsletters">Newsletters</a>
-      <a href="newsletters.html?category=Politics">Politics</a>
-      <a href="newsletters.html?category=Culture">Culture</a>
-      <a href="newsletters.html?category=Opinion">Opinion</a>
     </nav>
   </header>
 
-  <main class="wrap list-page" id="main" tabindex="-1">
-    <h1 class="page-title">All Newsletters</h1>
-
-    <!-- Filters / Search summary -->
-    <div class="filter-row" role="region" aria-label="Filters">
-      <div id="active-filter" class="muted"></div>
-
-      <!-- Category chips (auto) -->
-      <div id="category-chips" class="trend-tags" style="margin-top:.4rem;"></div>
-
-      <!-- NEW: Tag cloud (auto) -->
-      <div id="tag-cloud" class="trend-tags" style="margin-top:.4rem;"></div>
+  <!-- ==== Trending TAGS (auto-built by JS) ==== -->
+  <aside class="trending" aria-label="Trending tags">
+    <div class="wrap">
+      <strong class="trend-label">Trending:</strong>
+      <div id="trend-topics" class="trend-tags"><!-- filled by JS --></div>
     </div>
+  </aside>
 
-    <!-- Results -->
-    <div id="news-list" class="cards-grid"></div>
+  <!-- ==== Magazine front page ==== -->
+  <main id="main" class="wrap front" tabindex="-1">
+    <!-- Lead + Top stories -->
+    <section class="lead-grid" aria-label="Lead story">
+      <article id="lead-story" class="lead-card"><!-- filled by JS --></article>
+      <div id="top-stories" class="top-stories"><!-- filled by JS --></div>
+    </section>
+
+    <!-- Latest + Sidebar -->
+    <section class="content-grid" aria-label="Latest">
+      <div class="main-col">
+        <h2 class="h-section">Latest</h2>
+        <div id="latest-grid" class="cards-grid"><!-- filled by JS --></div>
+      </div>
+
+      <aside class="side-col">
+        <div class="side-panel">
+          <h3 class="h-side">Latest Headlines</h3>
+          <ul id="sidebar-latest" class="side-list"><!-- filled by JS --></ul>
+        </div>
+
+        <div class="side-panel signup" role="complementary" aria-label="Newsletter signup">
+          <h3 class="h-side">Never miss a story</h3>
+          <p>Get the latest in your inbox. No spam, unsubscribe anytime.</p>
+          <form onsubmit="return false" aria-disabled="true" title="Wire this later">
+            <input type="email" placeholder="Email address" aria-label="Email address" disabled>
+            <button class="btn" disabled>Subscribe</button>
+          </form>
+          <small class="muted">Coming soon</small>
+        </div>
+      </aside>
+    </section>
   </main>
 
-  <footer class="site-footer">
+  <footer class="site-footer" id="footer">
     <div class="wrap footer-grid">
+      <div>
+        <a class="brand" href="index.html" aria-label="Sleepy Hollow Media Home">
+          <img class="brand-mark" src="assets/logo.png" alt="" />
+          <span class="brand-name">Sleepy Hollow Media</span>
+        </a>
+        <p class="muted">Independent reporting from the Hollow.</p>
+      </div>
+      <nav class="footer-links" aria-label="Footer">
+        <a href="newsletters.html">Latest</a>
+        <a href="#">Donate</a>
+        <a href="#">Subscribe</a>
+      </nav>
       <div class="copy muted">© <span id="year"></span> Sleepy Hollow Media</div>
     </div>
   </footer>
 
   <!-- libs -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
-
-  <script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js" crossorigin="anonymous"></script>
+  <script src="script.js?v=4.2" defer></script>
   <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>
