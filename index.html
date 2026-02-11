@@ -8,34 +8,32 @@
   <!-- Favicon -->
   <link rel="icon" href="favicon.ico" sizes="any" />
 
-  <!-- Fonts (optional; self-host later for perf) -->
+  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="styles.css?v=4.7" />
+  <link rel="stylesheet" href="styles.css?v=5.0" />
 
   <!-- Open Graph / Twitter (Homepage) -->
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Sleepy Hallow Media" />
   <meta property="og:title" content="Sleepy Hallow Media — Independent Reporting" />
   <meta property="og:description" content="Local reporting, culture, and opinion from the Hollow." />
-  <!-- Replace with your absolute URL to a social card image (1200x630 recommended) -->
-  <meta property="og:image" content="https://woodstocker99.github.io/SleepyHallowMedia/assets/social-default.jpg" />
-  <meta property="og:url" content="https://woodstocker99.github.io/SleepyHallowMedia/" />
-
+  <meta property="og:image" content="assets/social-default.jpg" />
+  <meta property="og:url" content="https://example.github.io/" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Sleepy Hallow Media — Independent Reporting" />
   <meta name="twitter:description" content="Local reporting, culture, and opinion from the Hollow." />
-  <meta name="twitter:image" content="https://woodstocker99.github.io/SleepyHallowMedia/assets/social-default.jpg" />
+  <meta name="twitter:image" content="assets/social-default.jpg" />
 
   <!-- Markdown + Sanitizer (must load before script.js) -->
   <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
 
   <!-- App script -->
-  <script defer src="script.js?v=4.7"></script>
+  <script defer src="script.js?v=4.8"></script>
 </head>
 <body>
   <!-- Skip link -->
@@ -46,11 +44,9 @@
     <div class="wrap topbar-row">
       <div class="topbar-left">
         <a class="top-link" href="newsletters.html">Latest</a>
-        <!-- Example quick tag shortcuts; change to tags you actually use -->
         <a class="top-link" href="newsletters.html?tag=Local">Local</a>
         <a class="top-link" href="newsletters.html?tag=Opinion">Opinion</a>
       </div>
-
       <!-- Universal search -->
       <form id="site-search" class="top-search" action="newsletters.html" method="get">
         <label for="q" class="sr-only">Search</label>
@@ -67,29 +63,27 @@
         <img class="brand-mark" src="assets/logo.png" alt="" />
         <span class="brand-name">Sleepy Hallow Media</span>
       </a>
-
       <nav class="primary-nav" aria-label="Primary">
         <a data-nav="home" href="index.html">Home</a>
         <a data-nav="newsletters" href="newsletters.html">Newsletters</a>
       </nav>
-
       <div class="header-tools">
-        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false">
+        <button id="theme-toggle" class="theme-toggle" type="button"
+          aria-label="Toggle dark mode" aria-pressed="false">
           <span class="theme-icon" aria-hidden="true">🌙</span>
         </button>
         <button class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">☰</button>
       </div>
     </div>
-
     <nav id="mobile-menu" class="mobile-menu" aria-label="Mobile">
       <a data-nav="home" href="index.html">Home</a>
       <a data-nav="newsletters" href="newsletters.html">Newsletters</a>
     </nav>
   </header>
 
-  <!-- ==== Trending TAGS (auto-filled by JS) ==== -->
+  <!-- ==== Trending TAGS ==== -->
   <aside class="trending" aria-label="Trending tags">
-    <div class="wrap">
+    <div class="wrap trend-row">
       <strong class="trend-label">Trending:</strong>
       <div id="trend-topics" class="trend-tags"></div>
     </div>
@@ -99,8 +93,14 @@
   <main id="main" class="wrap front" tabindex="-1">
     <!-- Lead + Top stories -->
     <section class="lead-grid" aria-label="Lead story">
+      <!-- Lead (left) -->
       <article id="lead-story" class="lead-card"></article>
-      <div id="top-stories" class="top-stories"></div>
+
+      <!-- Right rail (list of top items) -->
+      <div class="right-rail">
+        <h2 class="sr-only">Top Stories</h2>
+        <div id="top-stories" class="top-stories"></div>
+      </div>
     </section>
 
     <!-- Latest + Sidebar -->
@@ -109,13 +109,11 @@
         <h2 class="h-section">Latest</h2>
         <div id="latest-grid" class="cards-grid"></div>
       </div>
-
       <aside class="side-col">
         <div class="side-panel">
           <h3 class="h-side">Latest Headlines</h3>
           <ul id="sidebar-latest" class="side-list"></ul>
         </div>
-
         <div class="side-panel signup" role="complementary" aria-label="Newsletter signup">
           <h3 class="h-side">Never miss a story</h3>
           <p>Get the latest in your inbox. No spam, unsubscribe anytime.</p>
@@ -146,7 +144,6 @@
       <div class="copy muted">© <span id="year"></span> Sleepy Hallow Media</div>
     </div>
   </footer>
-
   <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
 </body>
 </html>
