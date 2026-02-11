@@ -1,9 +1,9 @@
 /* Sleepy Hollow Media — Magazine Script (stable, complete)
    - Theme (light/dark) with cookie + localStorage
-   - Homepage: lead + top stories + latest + sidebar + trending
+   - Homepage: lead + top stories + latest + sidebar + TRENDING TAGS
    - Newsletters list: search + category chips + TAG filtering
    - Article view: hero from Thumbnail + reading time + share links
-   - No top-level await (prevents parse/runtime errors in strict environments)
+   - No top-level await
 */
 
 'use strict';
@@ -61,7 +61,6 @@ function initTheme() {
       setCookie(THEME_COOKIE, next, 365);
     });
   }
-  // Follow OS changes only if user hasn’t explicitly chosen a theme
   const explicit = getCookie(THEME_COOKIE) || (() => { try { return localStorage.getItem(THEME_COOKIE); } catch { return null; } })();
   if (!explicit && window.matchMedia) {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
@@ -172,7 +171,6 @@ function renderMarkdownSafe(text) {
     const raw = window.marked.parse(String(text ?? ''));
     return window.DOMPurify.sanitize(raw, { ALLOWED_ATTR: ['href','src','alt','title','class'] });
   }
-  // Fallback: simple paragraph blocks
   return String(text ?? '')
     .split(/\n\s*\n/)
     .map(p => `<p>${escapeHtml(p.trim())}</p>`)
@@ -199,7 +197,6 @@ function initMobile() {
   }
 }
 function hijackHeaderSearch() {
-  // Optional search form (if present): newsletters.html…</form>
   const form = document.getElementById('site-search');
   if (!form) return;
   form.addEventListener('submit', (e) => {
@@ -280,13 +277,13 @@ function leadCardHTML(item) {
   const url    = `article.html?article=${encodeURIComponent(file)}`;
 
   return `
-    <img class="lead-bg" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
+    ${encodeURI(img)}
     <div class="lead-body">
       ${cat ? `<span class="kicker">${escapeHtml(cat)}</span>` : ''}
-      <h2 class="lead-title"><a href="${url}">${escapeHtml(title)}</a></h2>
+      <h2 class="lead-title">${url}${escapeHtml(title)}</a></h2>
       <div class="lead-meta">${escapeHtml(date)}${date ? ' • ' : ''}${escapeHtml(author)}</div>
     </div>
-    <a class="stretched-link" href="${url}" aria-label="${escapeHtml(title)}"></a>
+    ${url}</a>
   `;
 }
 
@@ -299,11 +296,11 @@ function topCardHTML(item) {
   const url    = `article.html?article=${encodeURIComponent(file)}`;
 
   return `
-    <a href="${url}" aria-label="${escapeHtml(title)}">
-      <img class="top-thumb" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
+    ${url}
+      ${encodeURI(img)}
     </a>
     <div class="top-body">
-      <h3 class="top-title"><a href="${url}">${escapeHtml(title)}</a></h3>
+      <h3 class="top-title">${url}${escapeHtml(title)}</a></h3>
       <div class="top-meta">${escapeHtml(date)}${date ? ' • ' : ''}${escapeHtml(author)}</div>
     </div>
   `;
@@ -325,7 +322,7 @@ function gridCard(item) {
   a.href = url;
   a.setAttribute('aria-label', title);
   a.innerHTML = `
-    <img class="card-img" src="${encodeURI(img)}" alt="" loading="lazy" decoding="async" />
+    ${encodeURI(img)}
     <div class="card-body">
       ${chip}${tags}
       <h3 class="card-title">${escapeHtml(title)}</h3>
@@ -371,27 +368,27 @@ async function renderHome() {
       const li = document.createElement('li');
       const date = formatDate(item.meta.Date);
       const url  = `article.html?article=${encodeURIComponent(item.file)}`;
-      li.innerHTML = `<a href="${url}">${escapeHtml(item.meta.Title || item.file)}</a>
+      li.innerHTML = `${url}${escapeHtml(item.meta.Title || item.file)}</a>
         <div class="muted" style="font-size:.85rem">${escapeHtml(date)}</div>`;
       sList.appendChild(li);
     }
   }
 
-  // Trending topics (by Category frequency)
+  // Trending TAGS (top 6)
   const trend = document.getElementById('trend-topics');
   if (trend) {
     const counts = new Map();
     for (const it of data) {
-      const cat = (it.meta.Category || '').trim();
-      if (!cat) continue;
-      counts.set(cat, (counts.get(cat) || 0) + 1);
+      for (const t of (it.meta._tags || [])) {
+        const key = t.trim();
+        if (!key) continue;
+        counts.set(key, (counts.get(key) || 0) + 1);
+      }
     }
-    const tags = [...counts.entries()]
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 6)
-      .map(([k]) => `<a href="newsletters.html?category=${encodeURIComponent(k)}">${escapeHtml(k)}</a>`)
-      .join('');
-    trend.innerHTML = tags || '<span class="muted">No trending topics yet</span>';
+    const topTags = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+    trend.innerHTML = topTags.length
+      ? topTags.map(([k]) => `newsletters.html?tag=${encodeURIComponent(k)}${escapeHtml(k)}</a>`).join('')
+      : '<span class="muted">No trending tags yet</span>';
   }
 }
 
@@ -420,7 +417,7 @@ async function renderListPage() {
   if (chipWrap) {
     const cats = [...new Set(data.map(i => (i.meta.Category || '').trim()).filter(Boolean))].sort();
     chipWrap.innerHTML = cats.map(c =>
-      `<a href="newsletters.html?category=${encodeURIComponent(c)}">${escapeHtml(c)}</a>`
+      `newsletters.html?category=${encodeURIComponent(c)}${escapeHtml(c)}</a>`
     ).join('');
   }
 
@@ -436,14 +433,16 @@ async function renderListPage() {
       }
     }
     const list = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20);
-    tagWrap.innerHTML = list.map(([t]) => {
-      const isOn = activeTags.includes(t.toLowerCase());
-      const url = new URL(location.href);
-      const current = parseTagsParam(url.searchParams.get('tag') || '').map(x => x.toLowerCase());
-      const next = isOn ? current.filter(x => x !== t.toLowerCase()) : [...new Set([...current, t.toLowerCase()])];
-      if (next.length) url.searchParams.set('tag', next.join(',')); else url.searchParams.delete('tag');
-      return `<a href="${url.pathname + url.search}">${escapeHtml(t)}</a>`;
-    }).join('') || '<span class="muted">No tags yet</span>';
+    tagWrap.innerHTML = list.length
+      ? list.map(([t]) => {
+          const isOn = activeTags.includes(t.toLowerCase());
+          const url = new URL(location.href);
+          const current = parseTagsParam(url.searchParams.get('tag') || '').map(x => x.toLowerCase());
+          const next = isOn ? current.filter(x => x !== t.toLowerCase()) : [...new Set([...current, t.toLowerCase()])];
+          if (next.length) url.searchParams.set('tag', next.join(',')); else url.searchParams.delete('tag');
+          return `${url.pathname + url.search}${escapeHtml(t)}</a>`;
+        }).join('')
+      : '<span class="muted">No tags yet</span>';
   }
 
   // Filter by category
@@ -590,7 +589,6 @@ document.addEventListener('DOMContentLoaded', () => {
   markCurrentNav();
   hijackHeaderSearch();
 
-  // Fire-and-forget; each async function handles its own work
   renderHome();
   renderListPage();
   initArticlePage();
