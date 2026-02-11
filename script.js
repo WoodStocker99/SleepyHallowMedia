@@ -1,8 +1,10 @@
-/* Sleepy Hallow Media — Magazine Script (stable + Step 4.2 improvements)
-   - Prefetch article content on hover/focus/near-viewport
-   - Use sessionStorage as a warm cache across navigation
-   - Light responsive image hints (lazy-loading, sizes/decoding)
-   - Article tag chips linking to ?tag=
+/* Sleepy Hollow Media — Magazine Script (stable + OG/Twitter auto-fill)
+   - Theme (light/dark) with cookie + localStorage
+   - Homepage: lead + top stories + latest + sidebar + trending TAGS
+   - List page: search + category chips + TAG filtering
+   - Article view: <img class="a-hero-bg"> hero + reading time + share links
+   - Perf: hover/viewport prefetch + sessionStorage warm cache + image hints
+   - OG/Twitter: dynamic meta fill on article.html
 */
 
 'use strict';
@@ -55,49 +57,36 @@ function normalize(str){ return String(str??'').toLowerCase(); }
 function itemScore(item,q){ const {meta,body}=item; const nQ=normalize(q); let score=0; const addIf=(c,w)=>{if(c)score+=w;}; addIf(normalize(meta.Title).includes(nQ),8); addIf(normalize(meta.Subtitle).includes(nQ),5); addIf(normalize(meta.Author).includes(nQ),4); addIf(normalize(meta.Category).includes(nQ),4); addIf((meta._tags||[]).some(t=>normalize(t).includes(nQ)),3); addIf(normalize(body).slice(0,800).includes(nQ),1); return score; }
 function searchItems(items,query){ const q=query?.trim(); if(!q) return items; const ranked=items.map(it=>({it,s:itemScore(it,q)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s||(b.it.meta._dateObj-a.it.meta._dateObj)); return ranked.map(x=>x.it); }
 
-/* ---------- Warm prefetch (Step 4.2) ---------- */
+/* ---------- Prefetch (hover/viewport) + warm cache ---------- */
 const PREFETCH_KEY_PREFIX='pre:';
 function getPrefetchKey(file){ return PREFETCH_KEY_PREFIX + file; }
 async function primeArticle(file){
   const f=sanitizeFilename(file);
   if(!f) return;
   const key=getPrefetchKey(f);
-  if(sessionStorage.getItem(key)) return; // already warmed
+  if(sessionStorage.getItem(key)) return;
   try{
     const path=f.startsWith('newsletters/')?f:`${NEWS_DIR}${f}`;
     const res=await fetch(path,{cache:'force-cache'});
     if(!res.ok) return;
     const text=await res.text();
-    // store raw; we’ll parse on the article page
     sessionStorage.setItem(key, text);
   }catch{}
 }
 function hookHoverPrefetch(){
-  // hover/focus prefetch
   document.addEventListener('mouseover', e=>{
-    const a=e.target.closest('a[href*="article.html?"]');
-    if(!a) return;
-    const u=new URL(a.href, location.href);
-    const file=u.searchParams.get('article');
-    primeArticle(file);
+    const a=e.target.closest('a[href*="article.html?"]'); if(!a) return;
+    const u=new URL(a.href, location.href); const file=u.searchParams.get('article'); primeArticle(file);
   }, {passive:true});
   document.addEventListener('focusin', e=>{
-    const a=e.target.closest('a[href*="article.html?"]');
-    if(!a) return;
-    const u=new URL(a.href, location.href);
-    const file=u.searchParams.get('article');
-    primeArticle(file);
+    const a=e.target.closest('a[href*="article.html?"]'); if(!a) return;
+    const u=new URL(a.href, location.href); const file=u.searchParams.get('article'); primeArticle(file);
   });
-  // near-viewport prefetch
   const io=new IntersectionObserver((entries)=>{
     for(const entry of entries){
       if(entry.isIntersecting){
         const a=entry.target;
-        try{
-          const u=new URL(a.href, location.href);
-          const file=u.searchParams.get('article');
-          primeArticle(file);
-        }catch{}
+        try{ const u=new URL(a.href, location.href); const file=u.searchParams.get('article'); primeArticle(file);}catch{}
         io.unobserve(a);
       }
     }
@@ -105,26 +94,20 @@ function hookHoverPrefetch(){
   document.querySelectorAll('a[href*="article.html?"]').forEach(a=>io.observe(a));
 }
 
-/* ---------- Image hints (lazy load + sizes) ---------- */
+/* ---------- Image hints ---------- */
 function enhanceImages(){
-  // Top cards
   document.querySelectorAll('.top-card img').forEach(img=>{
     img.loading='lazy'; img.decoding='async'; img.sizes='(max-width:980px) 92vw, 120px';
   });
-  // Grid cards
   document.querySelectorAll('.cards-grid img').forEach(img=>{
     img.loading='lazy'; img.decoding='async';
     img.sizes='(max-width:600px) 92vw, (max-width:1200px) 33vw, 260px';
   });
-  // Hero image: eager by design; ensure decoding hint
   const hero=document.querySelector('.a-hero-bg');
   if(hero){ hero.decoding='async'; }
 }
 
-/* ---------- Card builders (unchanged DOM structure) ---------- */
-/* NOTE: your current HTML builders are already working on your site.
-   We keep them intact to avoid regressions. */
-
+/* ---------- Card builders ---------- */
 function leadCardHTML(item){
   const {file, meta}=item;
   const title=meta.Title||file;
@@ -134,7 +117,7 @@ function leadCardHTML(item){
   const img=resolveThumbPath(meta.Thumbnail);
   const url=`article.html?article=${encodeURIComponent(file)}`;
   return `
-    <a class="stretched-link" href="${escapeAttr(url)}" aria-label="${escapeAttr(title)}"></a>
+    <a class="stretched-link" href="${escapeAttr(url)}"></a>
     <img class="lead-bg" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async" />
     <div class="lead-body">
       ${cat?`<span class="kicker">${escapeHtml(cat)}</span>`:''}
@@ -150,9 +133,7 @@ function topCardHTML(item){
   const author=meta.Author||'Staff';
   const url=`article.html?article=${encodeURIComponent(file)}`;
   return `
-    <a href="${escapeAttr(url)}" aria-label="${escapeAttr(title)}">
-      <img class="top-thumb" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async" sizes="(max-width:980px) 92vw, 120px" />
-    </a>
+    <a href="${escapeAttr(url)}"><img class="top-thumb" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async" /></a>
     <div class="top-body">
       <h3 class="top-title"><a href="${escapeAttr(url)}">${escapeHtml(title)}</a></h3>
       <div class="top-meta">${escapeHtml(date)}${date?' • ':''}${escapeHtml(author)}</div>
@@ -174,8 +155,7 @@ function gridCard(item){
   a.href=url;
   a.setAttribute('aria-label', title);
   a.innerHTML=`
-    <img class="card-img" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async"
-         sizes="(max-width:600px) 92vw, (max-width:1200px) 33vw, 260px" />
+    <img class="card-img" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async" />
     <div class="card-body">
       ${chip}${tags}
       <h3 class="card-title">${escapeHtml(title)}</h3>
@@ -319,6 +299,30 @@ async function renderListPage(){
   hookHoverPrefetch();
 }
 
+/* ---------- OG/Twitter helper (NEW) ---------- */
+function applyOpenGraph(meta, file){
+  const title = meta.Title || file;
+  const desc  = meta.Subtitle || '';
+  const img   = resolveThumbPath(meta.Thumbnail);
+  const url   = location.href;
+
+  const ogT = document.getElementById('og-title');
+  const ogD = document.getElementById('og-description');
+  const ogI = document.getElementById('og-image');
+  const ogU = document.getElementById('og-url');
+  if (ogT) ogT.content = title;
+  if (ogD) ogD.content = desc;
+  if (ogI) ogI.content = img;
+  if (ogU) ogU.content = url;
+
+  const twT = document.getElementById('tw-title');
+  const twD = document.getElementById('tw-description');
+  const twI = document.getElementById('tw-image');
+  if (twT) twT.content = title;
+  if (twD) twD.content = desc;
+  if (twI) twI.content = img;
+}
+
 /* ---------- Article page ---------- */
 function readingTimeFromText(text,wpm=200){ const words=String(text??'').trim().split(/\s+/).filter(Boolean).length; return `${Math.max(1,Math.round(words/wpm))} min read`; }
 function populateArticleHero(meta){
@@ -362,6 +366,7 @@ function buildShareLinks(title){
 }
 function renderArticle(container, filename, meta, body){
   populateArticleHero(meta);
+  applyOpenGraph(meta, filename); /* NEW: fill OG/Twitter tags */
 
   const reading=readingTimeFromText(body,200);
   const rt=document.getElementById('article-reading-time');
@@ -388,7 +393,7 @@ function renderArticle(container, filename, meta, body){
     <div>${bodyHtml}</div>
   `;
 
-  document.title=`${meta.Title||filename} — Sleepy Hallow Media`;
+  document.title=`${meta.Title||filename} — Sleepy Hollow Media`;
 }
 async function initArticlePage(){
   const content=document.getElementById('article-content');
@@ -402,7 +407,6 @@ async function initArticlePage(){
     return;
   }
 
-  // Use warmed cache if available
   const warmKey='pre:'+file;
   const warmed=sessionStorage.getItem(warmKey);
   if(warmed){
@@ -411,7 +415,7 @@ async function initArticlePage(){
       renderArticle(content, file, parsed.meta, parsed.body);
       buildShareLinks(parsed.meta.Title||file);
       return;
-    }catch{ /* fall through to fetch */ }
+    }catch{}
   }
 
   try{

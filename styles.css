@@ -1,4 +1,4 @@
-/* Sleepy Hallow Media — Magazine Theme with Light/Dark switch */
+/* Sleepy Hollow Media — Magazine Theme with Light/Dark switch */
 
 /* ---------- Light tokens (default) ---------- */
 :root {
@@ -251,7 +251,7 @@ a, button, .card, .top-card { transition: background .2s ease, box-shadow .2s ea
 figure{ margin:1.1rem 0; }
 figcaption{ color: var(--muted); font-size:.9rem; margin-top:.3rem; }
 
-/* Article tag chips */
+/* Article tag chips (added beneath byline) */
 .a-tags{ display:flex; flex-wrap:wrap; gap:.4rem; margin:.2rem 0 .8rem; }
 .a-tags a{ display:inline-block; padding:.18rem .55rem; border-radius:999px; background:#ffdba8; color:#0e1a2a; font-weight:800; font-size:.78rem; }
 
@@ -287,4 +287,4 @@ figcaption{ color: var(--muted); font-size:.9rem; margin-top:.3rem; }
 .lead-card { position:relative; overflow:hidden; }
 .lead-bg   { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .top-thumb { width:100%; height:100%; object-fit:cover; display:block; }
-.card-img  { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
+.card-img  { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }"P
