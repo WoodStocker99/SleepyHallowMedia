@@ -1,10 +1,11 @@
-/* Sleepy Hollow Media — Magazine Script (stable + OG/Twitter auto-fill)
-   - Theme (light/dark) with cookie + localStorage
+/* Sleepy Hollow Media — Magazine Script (v4.8)
+   - Theme (light/dark)
    - Homepage: lead + top stories + latest + sidebar + trending TAGS
    - List page: search + category chips + TAG filtering
-   - Article view: <img class="a-hero-bg"> hero + reading time + share links
+   - Article view: hero from Thumbnail + reading time + share links
    - Perf: hover/viewport prefetch + sessionStorage warm cache + image hints
-   - OG/Twitter: dynamic meta fill on article.html
+   - OG/Twitter (client-side for non-crawlers)
+   - FIX: Featured (lead) article is now fully clickable via overlay link
 */
 
 'use strict';
@@ -107,59 +108,67 @@ function enhanceImages(){
   if(hero){ hero.decoding='async'; }
 }
 
-/* ---------- Card builders ---------- */
+/* ---------- Card builders (fixed anchors & images) ---------- */
+/* Featured/Lead: we render INNER HTML only; the outer element (#lead-story) already has class="lead-card". */
 function leadCardHTML(item){
-  const {file, meta}=item;
-  const title=meta.Title||file;
-  const cat=meta.Category||'';
-  const date=formatDate(meta.Date);
-  const author=meta.Author||'Staff';
-  const img=resolveThumbPath(meta.Thumbnail);
-  const url=`article.html?article=${encodeURIComponent(file)}`;
+  const { file, meta } = item;
+  const title  = meta.Title || file;
+  const cat    = meta.Category || '';
+  const date   = formatDate(meta.Date);
+  const author = meta.Author || 'Staff';
+  const img    = resolveThumbPath(meta.Thumbnail);
+  const url    = `article.html?article=${encodeURIComponent(file)}`;
+
   return `
-    <a class="stretched-link" href="${escapeAttr(url)}"></a>
-    <img class="lead-bg" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async" />
+    <a class="card-overlay" href="${escapeAttr(url)}" aria-label="${escapeAttr(title)}"></a>
+    <img class="lead-bg" src="${escapeAttr(img)}" alt="">
     <div class="lead-body">
-      ${cat?`<span class="kicker">${escapeHtml(cat)}</span>`:''}
+      ${cat ? `<span class="kicker">${escapeHtml(cat)}</span>` : ''}
       <h2 class="lead-title"><a href="${escapeAttr(url)}">${escapeHtml(title)}</a></h2>
-      <div class="lead-meta">${escapeHtml(date)}${date?' • ':''}${escapeHtml(author)}</div>
-    </div>`;
+      <div class="lead-meta">${escapeHtml(date)}${date ? ' • ' : ''}${escapeHtml(author)}</div>
+    </div>
+  `;
 }
+
 function topCardHTML(item){
-  const {file, meta}=item;
-  const title=meta.Title||file;
-  const img=resolveThumbPath(meta.Thumbnail);
-  const date=formatDate(meta.Date);
-  const author=meta.Author||'Staff';
-  const url=`article.html?article=${encodeURIComponent(file)}`;
+  const { file, meta } = item;
+  const title  = meta.Title || file;
+  const img    = resolveThumbPath(meta.Thumbnail);
+  const date   = formatDate(meta.Date);
+  const author = meta.Author || 'Staff';
+  const url    = `article.html?article=${encodeURIComponent(file)}`;
   return `
-    <a href="${escapeAttr(url)}"><img class="top-thumb" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async" /></a>
+    <a class="top-thumb-link" href="${escapeAttr(url)}" aria-label="${escapeAttr(title)}">
+      <img class="top-thumb" src="${escapeAttr(img)}" alt="">
+    </a>
     <div class="top-body">
       <h3 class="top-title"><a href="${escapeAttr(url)}">${escapeHtml(title)}</a></h3>
-      <div class="top-meta">${escapeHtml(date)}${date?' • ':''}${escapeHtml(author)}</div>
-    </div>`;
+      <div class="top-meta">${escapeHtml(date)}${date ? ' • ' : ''}${escapeHtml(author)}</div>
+    </div>
+  `;
 }
-function gridCard(item){
-  const {file, meta}=item;
-  const img=resolveThumbPath(meta.Thumbnail);
-  const title=meta.Title||file;
-  const date=formatDate(meta.Date);
-  const author=meta.Author||'Staff';
-  const chip=meta.Category?`<span class="chip" title="Category">${escapeHtml(meta.Category)}</span>`:'';
-  const tags=(meta._tags||[]).slice(0,2).map(t=>`<span class="chip" title="Tag">${escapeHtml(t)}</span>`).join('');
-  const sub=meta.Subtitle?`<p class="card-sub">${escapeHtml(meta.Subtitle)}</p>`:'';
-  const url=`article.html?article=${encodeURIComponent(file)}`;
 
-  const a=document.createElement('a');
-  a.className='card';
-  a.href=url;
+function gridCard(item){
+  const { file, meta } = item;
+  const img    = resolveThumbPath(meta.Thumbnail);
+  const title  = meta.Title || file;
+  const date   = formatDate(meta.Date);
+  const author = meta.Author || 'Staff';
+  const chip   = meta.Category ? `<span class="chip" title="Category">${escapeHtml(meta.Category)}</span>` : '';
+  const tags   = (meta._tags || []).slice(0, 2).map(t => `<span class="chip" title="Tag">${escapeHtml(t)}</span>`).join('');
+  const sub    = meta.Subtitle ? `<p class="card-sub">${escapeHtml(meta.Subtitle)}</p>` : '';
+  const url    = `article.html?article=${encodeURIComponent(file)}`;
+
+  const a = document.createElement('a');
+  a.className = 'card';
+  a.href = url;
   a.setAttribute('aria-label', title);
-  a.innerHTML=`
-    <img class="card-img" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async" />
+  a.innerHTML = `
+    <img class="card-img" src="${escapeAttr(img)}" alt="">
     <div class="card-body">
       ${chip}${tags}
       <h3 class="card-title">${escapeHtml(title)}</h3>
-      <div class="card-meta">${escapeHtml(date)}${date?' • ':''}${escapeHtml(author)}</div>
+      <div class="card-meta">${escapeHtml(date)}${date ? ' • ' : ''}${escapeHtml(author)}</div>
       ${sub}
     </div>`;
   return a;
@@ -172,7 +181,12 @@ async function renderHome(){
 
   const leadEl=document.getElementById('lead-story');
   const topEl=document.getElementById('top-stories');
-  if(leadEl){ leadEl.innerHTML=leadCardHTML(data[0]); }
+
+  if(leadEl){
+    /* leadEl already has class="lead-card" in the HTML; we just fill its content */
+    leadEl.innerHTML = leadCardHTML(data[0]);
+  }
+
   if(topEl){
     topEl.innerHTML='';
     for(const item of data.slice(1,5)){
@@ -197,8 +211,8 @@ async function renderHome(){
     for(const item of data.slice(5, 5 + SIDEBAR_LATEST_LIMIT)){
       const li=document.createElement('li');
       const date=formatDate(item.meta.Date);
-      const url=`article.html?article=${encodeURIComponent(item.file)}`;
-      li.innerHTML=`<a href="${escapeAttr(url)}">${escapeHtml(item.meta.Title||item.file)}</a>
+      const url = `article.html?article=${encodeURIComponent(item.file)}`;
+      li.innerHTML = `<a href="${escapeAttr(url)}">${escapeHtml(item.meta.Title || item.file)}</a>
         <div class="muted" style="font-size:.85rem">${escapeHtml(date)}</div>`;
       sList.appendChild(li);
     }
@@ -299,7 +313,7 @@ async function renderListPage(){
   hookHoverPrefetch();
 }
 
-/* ---------- OG/Twitter helper (NEW) ---------- */
+/* ---------- OG/Twitter helper (client-side only) ---------- */
 function applyOpenGraph(meta, file){
   const title = meta.Title || file;
   const desc  = meta.Subtitle || '';
@@ -366,13 +380,12 @@ function buildShareLinks(title){
 }
 function renderArticle(container, filename, meta, body){
   populateArticleHero(meta);
-  applyOpenGraph(meta, filename); /* NEW: fill OG/Twitter tags */
+  applyOpenGraph(meta, filename);
 
   const reading=readingTimeFromText(body,200);
   const rt=document.getElementById('article-reading-time');
   if(rt) rt.textContent=` • ${reading}`;
 
-  // Optional: tag chips under byline
   const tags=(meta.Tags?splitTags(meta.Tags):[]);
   const bylineWrap=document.querySelector('.a-hero .a-hero-inner');
   if(tags.length && bylineWrap){
