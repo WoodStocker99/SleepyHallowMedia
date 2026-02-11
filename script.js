@@ -1,9 +1,9 @@
-/* Sleepy Hollow Media — Magazine Script (stable, anchors & images correct)
+/* Sleepy Hollow Media — Magazine Script (stable, article hero fixed; anchors/images correct)
    - Theme (light/dark) with cookie + localStorage
-   - Homepage: lead + top stories + latest + sidebar + TRENDING TAGS
-   - Newsletters list: search + category chips + TAG filtering
-   - Article view: hero from Thumbnail + reading time + share links
-   - No top-level await; loaded with defer
+   - Homepage: lead + top stories + latest + sidebar + trending TAGS
+   - List page: search + category chips + TAG filtering
+   - Article view: <img class="a-hero-bg"> hero + reading time + share links
+   - No top-level await; load with <script defer>
 */
 
 'use strict';
@@ -80,10 +80,7 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
-function escapeAttr(str) {
-  // Attribute-safe escape
-  return escapeHtml(str).replace(/`/g, '&#96;');
-}
+function escapeAttr(str) { return escapeHtml(str).replace(/`/g, '&#96;'); }
 
 // Accepts: "funtext.txt", "newsletters/funtext.txt", or "/newsletters/funtext.txt"
 function sanitizeFilename(filename) {
@@ -155,85 +152,81 @@ function resolveThumbPath(t) {
   return s;
 }
 
-function isTruthy(v) {
+function isTruthy(v){
   if (v === true) return true;
   if (typeof v === 'string') return /^(true|yes|1)$/i.test(v.trim());
   if (typeof v === 'number') return v !== 0;
   return false;
 }
 
-function splitTags(value) {
+function splitTags(value){
   if (!value) return [];
-  return String(value)
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean);
+  return String(value).split(',').map(s => s.trim()).filter(Boolean);
 }
 
-function renderMarkdownSafe(text) {
+function renderMarkdownSafe(text){
   if (typeof window !== 'undefined' && window.marked && window.DOMPurify) {
     const raw = window.marked.parse(String(text ?? ''));
     return window.DOMPurify.sanitize(raw, { ALLOWED_ATTR: ['href','src','alt','title','class'] });
   }
-  return String(text ?? '')
-    .split(/\n\s*\n/)
-    .map(p => `<p>${escapeHtml(p.trim())}</p>`)
-    .join('');
+  return String(text ?? '').split(/\n\s*\n/).map(p => `<p>${escapeHtml(p.trim())}</p>`).join('');
 }
 
 // -----------------------------
 // Nav / Header helpers
 // -----------------------------
-function markCurrentNav() {
+function markCurrentNav(){
   const file = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
   const map = { 'index.html': 'home', 'newsletters.html': 'newsletters' };
   const key = map[file];
-  document.querySelectorAll(`[data-nav="${key}"]`).forEach(a => a.setAttribute('aria-current', 'page'));
+  document.querySelectorAll(`[data-nav="${key}"]`).forEach(a => a.setAttribute('aria-current','page'));
 }
-function initMobile() {
+function initMobile(){
   const btn = document.querySelector('.nav-toggle');
   const menu = document.getElementById('mobile-menu');
-  if (btn && menu) {
-    btn.addEventListener('click', () => {
+  if (btn && menu){
+    btn.addEventListener('click', ()=>{
       const open = menu.classList.toggle('active');
       btn.setAttribute('aria-expanded', open ? 'true' : 'false');
     });
   }
 }
-function hijackHeaderSearch() {
+function hijackHeaderSearch(){
   const form = document.getElementById('site-search');
   if (!form) return;
-  form.addEventListener('submit', (e) => {
+  form.addEventListener('submit', (e)=>{
     const input = form.querySelector('input[name="q"]');
-    if (!input || !input.value.trim()) e.preventDefault();
+    if (!input || !input.value.trim()){
+      e.preventDefault();
+    }
   });
 }
 
 // -----------------------------
 // Data helpers
 // -----------------------------
-async function loadVisibleSorted() {
+async function loadVisibleSorted(){
   const manifest = await loadManifest();
   if (!manifest.length) return [];
   const items = (await Promise.all(
-    manifest.map(async f => {
-      try {
-        const { meta, body } = await loadNewsletter(f);
+    manifest.map(async f=>{
+      try{
+        const {meta, body} = await loadNewsletter(f);
         meta._dateObj = meta.Date ? new Date(meta.Date) : null;
         meta._tags = splitTags(meta.Tags);
         return { file: f, meta, body };
-      } catch {
+      }catch{
         return null;
       }
     })
   )).filter(Boolean);
 
   const visible = items.filter(r => !isTruthy(r.meta.Hidden));
-  visible.sort((a, b) => {
-    const ad = a.meta._dateObj, bd = b.meta._dateObj;
-    const aOk = ad && !Number.isNaN(ad.getTime());
-    const bOk = bd && !Number.isNaN(bd.getTime());
-    if (aOk && bOk) return bd - ad;  // newest first
+  visible.sort((a,b)=>{
+    const ad=a.meta._dateObj, bd=b.meta._dateObj;
+    const aOk=ad && !Number.isNaN(ad?.getTime?.());
+    const bOk=bd && !Number.isNaN(bd?.getTime?.());
+    if (aOk && bOk) return bd - ad;
     if (aOk) return -1;
     if (bOk) return 1;
     return b.file.localeCompare(a.file);
@@ -244,34 +237,34 @@ async function loadVisibleSorted() {
 // -----------------------------
 // Search ranking
 // -----------------------------
-function normalize(str) { return String(str ?? '').toLowerCase(); }
-function itemScore(item, q) {
+function normalize(str){ return String(str ?? '').toLowerCase(); }
+function itemScore(item, q){
   const { meta, body } = item;
   const nQ = normalize(q);
   let score = 0;
-  const addIf = (cond, weight) => { if (cond) score += weight; };
+  const addIf = (cond, weight)=>{ if (cond) score += weight; };
   addIf(normalize(meta.Title).includes(nQ), 8);
   addIf(normalize(meta.Subtitle).includes(nQ), 5);
   addIf(normalize(meta.Author).includes(nQ), 4);
   addIf(normalize(meta.Category).includes(nQ), 4);
-  addIf((meta._tags || []).some(t => normalize(t).includes(nQ)), 3);
+  addIf((meta._tags || []).some(t=>normalize(t).includes(nQ)), 3);
   addIf(normalize(body).slice(0, 800).includes(nQ), 1);
   return score;
 }
-function searchItems(items, query) {
+function searchItems(items, query){
   const q = query?.trim();
   if (!q) return items;
   const ranked = items
     .map(it => ({ it, s: itemScore(it, q) }))
     .filter(x => x.s > 0)
-    .sort((a, b) => b.s - a.s || (b.it.meta._dateObj - a.it.meta._dateObj));
+    .sort((a,b)=> b.s - a.s || (b.it.meta._dateObj - a.it.meta._dateObj));
   return ranked.map(x => x.it);
 }
 
 // -----------------------------
 // Card builders (valid <a> + <img>)
 // -----------------------------
-function leadCardHTML(item) {
+function leadCardHTML(item){
   const { file, meta } = item;
   const title  = meta.Title || file;
   const cat    = meta.Category || '';
@@ -280,10 +273,9 @@ function leadCardHTML(item) {
   const img    = resolveThumbPath(meta.Thumbnail);
   const url    = `article.html?article=${encodeURIComponent(file)}`;
 
-  // Full-card overlay link + image + title link
   return `
     <a class="stretched-link" href="${escapeAttr(url)}" aria-label="${escapeAttr(title)}"></a>
-    <img class="lead-bg" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async" />
+    <img class="lead-bg" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async">
     <div class="lead-body">
       ${cat ? `<span class="kicker">${escapeHtml(cat)}</span>` : ''}
       <h2 class="lead-title"><a href="${escapeAttr(url)}">${escapeHtml(title)}</a></h2>
@@ -292,7 +284,7 @@ function leadCardHTML(item) {
   `;
 }
 
-function topCardHTML(item) {
+function topCardHTML(item){
   const { file, meta } = item;
   const title  = meta.Title || file;
   const img    = resolveThumbPath(meta.Thumbnail);
@@ -301,8 +293,8 @@ function topCardHTML(item) {
   const url    = `article.html?article=${encodeURIComponent(file)}`;
 
   return `
-    <a class="img-link" href="${escapeAttr(url)}" aria-label="${escapeAttr(title)}">
-      <img class="top-thumb" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async" />
+    <a href="${escapeAttr(url)}" aria-label="${escapeAttr(title)}">
+      <img class="top-thumb" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async">
     </a>
     <div class="top-body">
       <h3 class="top-title"><a href="${escapeAttr(url)}">${escapeHtml(title)}</a></h3>
@@ -311,14 +303,14 @@ function topCardHTML(item) {
   `;
 }
 
-function gridCard(item) {
+function gridCard(item){
   const { file, meta } = item;
   const img    = resolveThumbPath(meta.Thumbnail);
   const title  = meta.Title || file;
   const date   = formatDate(meta.Date);
   const author = meta.Author || 'Staff';
   const chip   = meta.Category ? `<span class="chip" title="Category">${escapeHtml(meta.Category)}</span>` : '';
-  const tags   = (meta._tags || []).slice(0, 2).map(t => `<span class="chip" title="Tag">${escapeHtml(t)}</span>`).join('');
+  const tags   = (meta._tags || []).slice(0,2).map(t=>`<span class="chip" title="Tag">${escapeHtml(t)}</span>`).join('');
   const sub    = meta.Subtitle ? `<p class="card-sub">${escapeHtml(meta.Subtitle)}</p>` : '';
   const url    = `article.html?article=${encodeURIComponent(file)}`;
 
@@ -327,7 +319,7 @@ function gridCard(item) {
   a.href = url;
   a.setAttribute('aria-label', title);
   a.innerHTML = `
-    <img class="card-img" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async" />
+    <img class="card-img" src="${escapeAttr(img)}" alt="" loading="lazy" decoding="async">
     <div class="card-body">
       ${chip}${tags}
       <h3 class="card-title">${escapeHtml(title)}</h3>
@@ -340,7 +332,7 @@ function gridCard(item) {
 // -----------------------------
 // Homepage render
 // -----------------------------
-async function renderHome() {
+async function renderHome(){
   const data = await loadVisibleSorted();
   if (!data.length) return;
 
@@ -348,9 +340,9 @@ async function renderHome() {
   const topEl  = document.getElementById('top-stories');
   if (leadEl) leadEl.innerHTML = leadCardHTML(data[0]);
 
-  if (topEl) {
+  if (topEl){
     topEl.innerHTML = '';
-    for (const item of data.slice(1, 5)) {
+    for (const item of data.slice(1,5)){
       const card = document.createElement('article');
       card.className = 'top-card';
       card.innerHTML = topCardHTML(item);
@@ -359,17 +351,17 @@ async function renderHome() {
   }
 
   const latest = document.getElementById('latest-grid');
-  if (latest) {
+  if (latest){
     latest.innerHTML = '';
-    for (const item of data.slice(5, 5 + HOMEPAGE_LATEST_LIMIT)) {
+    for (const item of data.slice(5, 5 + HOMEPAGE_LATEST_LIMIT)){
       latest.appendChild(gridCard(item));
     }
   }
 
   const sList = document.getElementById('sidebar-latest');
-  if (sList) {
+  if (sList){
     sList.innerHTML = '';
-    for (const item of data.slice(5, 5 + SIDEBAR_LATEST_LIMIT)) {
+    for (const item of data.slice(5, 5 + SIDEBAR_LATEST_LIMIT)){
       const li = document.createElement('li');
       const date = formatDate(item.meta.Date);
       const url  = `article.html?article=${encodeURIComponent(item.file)}`;
@@ -381,18 +373,18 @@ async function renderHome() {
 
   // Trending TAGS (top 6)
   const trend = document.getElementById('trend-topics');
-  if (trend) {
+  if (trend){
     const counts = new Map();
-    for (const it of data) {
-      for (const t of (it.meta._tags || [])) {
+    for (const it of data){
+      for (const t of (it.meta._tags || [])){
         const key = t.trim();
         if (!key) continue;
         counts.set(key, (counts.get(key) || 0) + 1);
       }
     }
-    const topTags = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+    const topTags = [...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6);
     trend.innerHTML = topTags.length
-      ? topTags.map(([k]) => `<a href="newsletters.html?tag=${encodeURIComponent(k)}">${escapeHtml(k)}</a>`).join('')
+      ? topTags.map(([k]) => `<a href="newsletters.html?tag=${encodeURIComponent(k)}" class="chip">${escapeHtml(k)}</a>`).join('')
       : '<span class="muted">No trending tags yet</span>';
   }
 }
@@ -400,12 +392,12 @@ async function renderHome() {
 // -----------------------------
 // List page (search + category + TAGS)
 // -----------------------------
-function parseTagsParam(value) {
+function parseTagsParam(value){
   if (!value) return [];
   return value.split(',').map(s => s.trim()).filter(Boolean);
 }
 
-async function renderListPage() {
+async function renderListPage(){
   const container = document.getElementById('news-list');
   if (!container) return;
 
@@ -419,33 +411,33 @@ async function renderListPage() {
 
   // Category chips
   const chipWrap = document.getElementById('category-chips');
-  if (chipWrap) {
+  if (chipWrap){
     const cats = [...new Set(data.map(i => (i.meta.Category || '').trim()).filter(Boolean))].sort();
     chipWrap.innerHTML = cats.map(c =>
-      `<a href="newsletters.html?category=${encodeURIComponent(c)}">${escapeHtml(c)}</a>`
+      `<a href="newsletters.html?category=${encodeURIComponent(c)}" class="chip">${escapeHtml(c)}</a>`
     ).join('');
   }
 
-  // Tag cloud (toggle via querystring)
+  // Tag cloud (toggle via query string; always real anchors)
   const tagWrap = document.getElementById('tag-cloud');
-  if (tagWrap) {
+  if (tagWrap){
     const counts = new Map();
-    for (const i of data) {
-      for (const t of (i.meta._tags || [])) {
+    for (const i of data){
+      for (const t of (i.meta._tags || [])){
         const key = t.trim();
         if (!key) continue;
         counts.set(key, (counts.get(key) || 0) + 1);
       }
     }
-    const list = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 20);
+    const list = [...counts.entries()].sort((a,b)=>b[1]-a[1]).slice(0,20);
     tagWrap.innerHTML = list.length
       ? list.map(([t]) => {
-          const isOn = activeTags.includes(t.toLowerCase());
+          const on = activeTags.includes(t.toLowerCase());
           const url = new URL(location.href);
-          const current = parseTagsParam(url.searchParams.get('tag') || '').map(x => x.toLowerCase());
-          const next = isOn ? current.filter(x => x !== t.toLowerCase()) : [...new Set([...current, t.toLowerCase()])];
+          const curr = parseTagsParam(url.searchParams.get('tag') || '').map(x => x.toLowerCase());
+          const next = on ? curr.filter(x => x !== t.toLowerCase()) : [...new Set([...curr, t.toLowerCase()])];
           if (next.length) url.searchParams.set('tag', next.join(',')); else url.searchParams.delete('tag');
-          return `<a href="${escapeAttr(url.pathname + url.search)}">${escapeHtml(t)}</a>`;
+          return `<a href="${escapeAttr(url.pathname + url.search)}" class="chip">${escapeHtml(t)}</a>`;
         }).join('')
       : '<span class="muted">No tags yet</span>';
   }
@@ -456,7 +448,7 @@ async function renderListPage() {
     : data;
 
   // Filter by TAGS (OR within tags)
-  if (activeTags.length) {
+  if (activeTags.length){
     filtered = filtered.filter(i => {
       const tags = (i.meta._tags || []).map(t => t.toLowerCase());
       return activeTags.some(t => tags.includes(t));
@@ -468,7 +460,7 @@ async function renderListPage() {
 
   // Summary
   const info = document.getElementById('active-filter');
-  if (info) {
+  if (info){
     const parts = [];
     if (q) parts.push(`“${q}”`);
     if (activeCat) parts.push(`Category: ${activeCat}`);
@@ -478,7 +470,7 @@ async function renderListPage() {
 
   // Render
   container.innerHTML = '';
-  if (!filtered.length) {
+  if (!filtered.length){
     container.innerHTML = `<p class="muted">No items found${q ? ` for “${escapeHtml(q)}”` : ''}${activeCat ? ` in ${escapeHtml(activeCat)}` : ''}${activeTags.length ? ` with tags: ${escapeHtml(activeTags.join(', '))}` : ''}.</p>`;
     return;
   }
@@ -488,12 +480,11 @@ async function renderListPage() {
 // -----------------------------
 // Article page
 // -----------------------------
-function readingTimeFromText(text, wpm = 200) {
+function readingTimeFromText(text, wpm = 200){
   const words = String(text ?? '').trim().split(/\s+/).filter(Boolean).length;
   return `${Math.max(1, Math.round(words / wpm))} min read`;
 }
-
-function populateArticleHero(meta) {
+function populateArticleHero(meta){
   const bg = document.querySelector('.a-hero-bg'); // <img> in article.html
   const titleEl = document.getElementById('article-title');
   const subEl   = document.getElementById('article-subtitle');
@@ -511,15 +502,14 @@ function populateArticleHero(meta) {
   if (catEl)   { if (cat) { catEl.hidden = false; catEl.textContent = cat; } else { catEl.hidden = true; } }
 
   const img = resolveThumbPath(meta.Thumbnail);
-  if (bg) {
+  if (bg){
     bg.setAttribute('src', encodeURI(img));
-    bg.setAttribute('loading', 'eager');
-    bg.setAttribute('decoding', 'async');
-    bg.setAttribute('alt', '');
+    bg.setAttribute('loading','eager');
+    bg.setAttribute('decoding','async');
+    bg.setAttribute('alt','');
   }
 }
-
-function buildShareLinks(title) {
+function buildShareLinks(title){
   const url = location.href;
   const email  = document.querySelector('[data-share="email"]');
   const reddit = document.querySelector('[data-share="reddit"]');
@@ -531,19 +521,18 @@ function buildShareLinks(title) {
   if (reddit) reddit.href = `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`;
   if (x)      x.href      = `https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`;
 
-  if (copy) {
-    copy.addEventListener('click', async () => {
-      try {
+  if (copy){
+    copy.addEventListener('click', async ()=>{
+      try{
         await navigator.clipboard.writeText(url);
-        if (fb) { fb.textContent = 'Link copied!'; setTimeout(() => fb.textContent = '', 1400); }
-      } catch {
-        if (fb) { fb.textContent = 'Copy failed.'; setTimeout(() => fb.textContent = '', 1400); }
+        if (fb){ fb.textContent = 'Link copied!'; setTimeout(()=> fb.textContent = '', 1400); }
+      }catch{
+        if (fb){ fb.textContent = 'Copy failed.'; setTimeout(()=> fb.textContent = '', 1400); }
       }
     });
   }
 }
-
-function renderArticle(container, filename, meta, body) {
+function renderArticle(container, filename, meta, body){
   populateArticleHero(meta);
 
   const reading = readingTimeFromText(body, 200);
@@ -563,24 +552,23 @@ function renderArticle(container, filename, meta, body) {
 
   document.title = `${meta.Title || filename} — Sleepy Hollow Media`;
 }
-
-async function initArticlePage() {
+async function initArticlePage(){
   const content = document.getElementById('article-content');
   if (!content) return;
 
   const params = new URLSearchParams(window.location.search);
   const raw = params.get('article');
   const file = sanitizeFilename(raw);
-  if (!file) {
+  if (!file){
     content.innerHTML = `<p class="muted">Missing or invalid article parameter.</p>`;
     return;
   }
 
-  try {
+  try{
     const parsed = await loadNewsletter(file);
     renderArticle(content, file, parsed.meta, parsed.body);
     buildShareLinks(parsed.meta.Title || file);
-  } catch (e) {
+  }catch(e){
     console.error(e);
     content.innerHTML = `<p class="muted">Could not load this article.</p>`;
   }

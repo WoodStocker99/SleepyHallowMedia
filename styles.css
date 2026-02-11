@@ -283,3 +283,34 @@ figcaption{ color: var(--muted); font-size:.9rem; margin-top:.3rem; }
 /* Make a link cover its parent card (used for lead card) */
 .stretched-link{ position:absolute; inset:0; z-index:2; color:transparent; }
 .stretched-link:focus{ outline: 2px solid #fff; outline-offset: -2px; }
+
+/* === Article hero (img-based) === */
+.a-hero{
+  position:relative;
+  /* reserve height to avoid CLS; adjust upper bound if you prefer a taller hero */
+  min-height: clamp(240px, 38vw, 420px);
+  background: color-mix(in oklab, var(--surface), var(--accent) 12%);
+  display:grid; align-content:end;
+  border-bottom:1px solid var(--border);
+}
+.a-hero-bg{
+  /* it's an <img>, not a <div> now: make it fill and crop correctly */
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover; object-position:center;
+  display:block;
+}
+.a-hero::after{
+  content:""; position:absolute; inset:0;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.55) 100%);
+}
+.a-hero-inner{
+  position:relative; color:#fff;
+  padding: 1.2rem 0 1.4rem;
+}
+
+/* === Card images (ensure consistent cropping) === */
+.lead-card { position:relative; overflow:hidden; }
+.lead-bg   { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.top-thumb { width:100%; height:100%; object-fit:cover; display:block; }
+.card-img  { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
