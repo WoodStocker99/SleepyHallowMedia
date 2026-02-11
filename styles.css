@@ -1,4 +1,9 @@
-/* Sleepy Hollow Media — Magazine Theme with Light/Dark switch */
+/* Sleepy Hollow Media — Magazine Theme with Light/Dark switch
+   STEP 1: Typography hierarchy & rhythm improved
+   - Stronger headline/body contrast
+   - Better reading rhythm
+   - Mobile-friendly sizes
+*/
 
 /* ---------- Light tokens (default) ---------- */
 :root {
@@ -11,11 +16,30 @@
   --accent-2: #d48c45;
   --wrap: 1200px;
   --radius: 12px;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,.06);
-  --shadow-md: 0 8px 24px rgba(15,62,86,.10);
+
+  /* Softer, modern shadows */
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 24px rgba(0,0,0,.12);
+
   --g-gap: 1rem;
-  --h1: clamp(1.9rem, 1.3rem + 2vw, 2.6rem);
-  --measure: 70ch;
+
+  /* === STEP 1: Responsive type scale & rhythm === */
+  /* Base body font-size scales from ~16 → 17.5px */
+  --font-body: clamp(16px, 0.95rem + 0.2vw, 17.5px);
+
+  /* Headline scale */
+  --h0: clamp(2.4rem, 1.4rem + 3.2vw, 3.2rem);   /* Feature titles (home lead) */
+  --h1: clamp(2.0rem, 1.3rem + 2.2vw, 2.6rem);   /* Article / page titles */
+  --h2: clamp(1.6rem, 1.15rem + 1.4vw, 2.0rem);  /* Section headers */
+  --h3: clamp(1.25rem, 1.05rem + 0.8vw, 1.5rem); /* Card titles / subheads */
+
+  /* Comfortable line heights */
+  --lh-body: 1.7;
+  --lh-heading: 1.25;
+
+  /* Optimal reading measure */
+  --measure: 72ch;
+
   --ring: 2px solid color-mix(in oklab, var(--accent), white 30%);
 }
 
@@ -28,8 +52,10 @@
   --border: #1f2a3d;
   --accent: #7dc0ff;
   --accent-2: #efb077;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
+
+  --shadow-sm: 0 2px 8px rgba(0,0,0,.35);
   --shadow-md: 0 16px 36px rgba(0,0,0,.45);
+
   --ring: 2px solid color-mix(in oklab, var(--accent), black 30%);
 }
 
@@ -43,8 +69,10 @@
     --border: #1f2a3d;
     --accent: #7dc0ff;
     --accent-2: #efb077;
-    --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
+
+    --shadow-sm: 0 2px 8px rgba(0,0,0,.35);
     --shadow-md: 0 16px 36px rgba(0,0,0,.45);
+
     --ring: 2px solid color-mix(in oklab, var(--accent), black 30%);
   }
 }
@@ -52,21 +80,32 @@
 /* ---------- Base ---------- */
 *{ box-sizing: border-box; }
 html, body{ height:100%; }
+
 body{
   margin:0;
   font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   color: var(--ink);
   background: var(--bg);
-  line-height: 1.6;
+
+  /* STEP 1: body type & rhythm */
+  font-size: var(--font-body);
+  line-height: var(--lh-body);
+
   -webkit-font-smoothing: antialiased;
 }
+
 .wrap{ width: min(92%, var(--wrap)); margin: 0 auto; }
+
 a{ color: var(--accent); text-decoration: none; }
 a:hover{ text-decoration: underline; }
+
+/* Images */
 img{ display:block; max-width:100%; height:auto; }
 
 /* Smooth hover */
-a, button, .card, .top-card { transition: background .2s ease, box-shadow .2s ease, transform .15s ease, color .2s ease; }
+a, button, .card, .top-card {
+  transition: background .2s ease, box-shadow .2s ease, transform .15s ease, color .2s ease;
+}
 
 /* Skip link */
 .skip-link{
@@ -167,8 +206,28 @@ a, button, .card, .top-card { transition: background .2s ease, box-shadow .2s ea
   background: linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.55) 100%); }
 .lead-bg{ position:absolute; inset:0; object-fit:cover; width:100%; height:100%; }
 .lead-body{ position:relative; color:#fff; padding: 1rem 1.1rem; }
-.kicker{ display:inline-block; padding:.18rem .55rem; border-radius:999px; background:#ffdba8; color:#0e1a2a; font-weight:800; font-size:.8rem; margin-bottom:.5rem; }
-.lead-title{ font: 700 var(--h1) "Playfair Display", Georgia, serif; margin:.2rem 0 .4rem; }
+
+/* Kicker chip */
+.kicker{
+  display:inline-block; padding:.18rem .55rem; border-radius:999px;
+  background:#ffdba8; color:#0e1a2a; font-weight:800; font-size:.8rem;
+  margin-bottom:.5rem;
+}
+
+/* === STEP 1: Title hierarchy === */
+.lead-title,
+.a-title,
+h1{
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight: 700;
+  line-height: var(--lh-heading);
+  letter-spacing: 0.1px;
+  margin: 0.15em 0 0.35em;
+  font-size: var(--h1);
+}
+/* Feature-sized home lead */
+.front .lead-title { font-size: var(--h0); }
+
 .lead-meta{ opacity:.95; font-weight:600; }
 
 /* Top stories */
@@ -179,13 +238,29 @@ a, button, .card, .top-card { transition: background .2s ease, box-shadow .2s ea
 }
 .top-thumb{ width:100%; height:100%; object-fit:cover; min-height:110px; }
 .top-body{ padding:.7rem .8rem; }
-.top-title{ font-weight:800; color:var(--ink); margin:0 0 .25rem 0; }
-.top-meta{ color:var(--muted); font-size:.9rem; }
+
+/* === STEP 1: Card/title scale === */
+.top-title,
+.card-title{
+  font-weight:800;
+  line-height:1.25;
+  font-size: var(--h3);
+  margin: 0 0 0.35rem 0;
+}
+.top-meta{ color: var(--muted); font-size:.9rem; }
 
 /* Latest + sidebar */
 .content-grid{ display:grid; grid-template-columns:2fr 1fr; gap: var(--g-gap); }
 @media (max-width: 980px){ .content-grid{ grid-template-columns:1fr; } }
-.h-section{ margin:.6rem 0 1rem; font:700 1.6rem "Playfair Display", Georgia, serif; }
+
+/* === STEP 1: Section headers === */
+.h-section{
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight:700;
+  line-height: var(--lh-heading);
+  font-size: var(--h2);
+  margin: 0.5rem 0 0.8rem;
+}
 
 /* Cards grid */
 .cards-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap: var(--g-gap); }
@@ -197,10 +272,14 @@ a, button, .card, .top-card { transition: background .2s ease, box-shadow .2s ea
 .card-img{ width:100%; aspect-ratio:16/9; object-fit:cover; background:#dde7ef; }
 :root[data-theme="dark"] .card-img{ background:#1b2738; }
 .card-body{ padding:.9rem 1rem 1rem; display:flex; flex-direction:column; gap:.45rem; }
-.card-title{ margin:0; font-weight:800; color:var(--ink); }
 .card-meta{ color:var(--muted); font-size:.9rem; }
 .card-sub{ margin:0; color:var(--muted); font-size:.95rem; }
-.chip{ display:inline-block; padding:.18rem .55rem; border-radius:999px; background:#ffdba8; color:#0e1a2a; font-weight:800; font-size:.78rem; margin-right:.35rem; }
+
+/* Category/Tag chips inside cards */
+.chip{
+  display:inline-block; padding:.18rem .55rem; border-radius:999px;
+  background:#ffdba8; color:#0e1a2a; font-weight:800; font-size:.78rem; margin-right:.35rem;
+}
 
 /* Sidebar */
 .side-col{ display:flex; flex-direction:column; gap: var(--g-gap); }
@@ -214,7 +293,11 @@ a, button, .card, .top-card { transition: background .2s ease, box-shadow .2s ea
 .btn{ background:var(--accent); color:#fff; border:none; border-radius:8px; padding:.45rem .7rem; font-weight:700; }
 
 /* ---------- List page ---------- */
-.page-title{ font:700 2rem "Playfair Display", Georgia, serif; margin: 1rem 0; }
+.page-title{
+  font:700 var(--h1) "Playfair Display", Georgia, serif;
+  line-height: var(--lh-heading);
+  margin: 1rem 0 0.4rem;
+}
 .filter-row{ margin-bottom:.6rem; }
 .list-page .cards-grid{ margin-bottom:1.6rem; }
 
@@ -235,23 +318,56 @@ a, button, .card, .top-card { transition: background .2s ease, box-shadow .2s ea
 .a-hero::after{ content:""; position:absolute; inset:0; background: linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.55) 100%); }
 .a-hero-inner{ position:relative; color:#fff; padding: 1.2rem 0 1.4rem; }
 .a-kicker{ display:inline-block; padding:.18rem .55rem; border-radius:999px; background:#ffdba8; color:#0e1a2a; font-weight:800; font-size:.8rem; margin-bottom:.6rem; }
-.a-title{ font:700 var(--h1) "Playfair Display", Georgia, serif; margin:.1rem 0 .35rem; }
-.a-sub{ margin:0 0 .4rem 0; opacity:.95; }
+
+/* a-title already set with --h1 above */
+
+/* Subtitle: slightly tight for hero */
+.a-sub{ margin:0 0 .4rem 0; opacity:.95; line-height:1.4; }
+
 .a-byline{ opacity:.95; font-weight:600; display:flex; gap:.6rem; flex-wrap:wrap; }
 
+/* Article container */
 .article-wrap{ max-width: var(--measure); }
+
+/* === STEP 1: Article body rhythm & hierarchy === */
 .article-body{
   background:var(--surface); border:1px solid var(--border); border-radius:var(--radius);
   box-shadow: var(--shadow-sm); padding: clamp(1rem, 1.6vw, 1.5rem); margin: 1.1rem 0;
 }
-.article-body p{ margin: 1rem 0; }
-.article-body h2{ margin: 1.4rem 0 .6rem; font:700 1.5rem "Playfair Display", Georgia, serif; }
-.article-body h3{ margin: 1.1rem 0 .5rem; font:700 1.25rem "Playfair Display", Georgia, serif; }
-.article-body blockquote{ margin:1.2rem 0; padding:.9rem 1rem; border-left:4px solid var(--accent-2); background:#fff5eb; border-radius:8px; }
+.article-body p{
+  font-size: 1rem;                 /* inherits responsive base */
+  line-height: var(--lh-body);
+  margin: 0.85rem 0 0.85rem;
+  max-width: var(--measure);
+}
+
+/* Subheadings inside article */
+.article-body h2{
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight:700; line-height: var(--lh-heading);
+  font-size: var(--h2);
+  margin: 1.2rem 0 0.5rem;
+}
+.article-body h3{
+  font-family: "Playfair Display", Georgia, serif;
+  font-weight:700; line-height: var(--lh-heading);
+  font-size: var(--h3);
+  margin: 1rem 0 0.45rem;
+}
+
+/* Optional: nicer underline for inline links */
+.article-body a{
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.15em;
+}
+
+.article-body blockquote{
+  margin:1.2rem 0; padding:.9rem 1rem; border-left:4px solid var(--accent-2); background:#fff5eb; border-radius:8px;
+}
 figure{ margin:1.1rem 0; }
 figcaption{ color: var(--muted); font-size:.9rem; margin-top:.3rem; }
 
-/* Article tag chips (added beneath byline) */
+/* Article tag chips (under byline when present) */
 .a-tags{ display:flex; flex-wrap:wrap; gap:.4rem; margin:.2rem 0 .8rem; }
 .a-tags a{ display:inline-block; padding:.18rem .55rem; border-radius:999px; background:#ffdba8; color:#0e1a2a; font-weight:800; font-size:.78rem; }
 
@@ -282,9 +398,17 @@ figcaption{ color: var(--muted); font-size:.9rem; margin-top:.3rem; }
 
 /* ---------- Utility ---------- */
 .sr-only{ position:absolute!important; height:1px; width:1px; overflow:hidden; clip:rect(1px,1px,1px,1px); white-space:nowrap; }
+[aria-disabled="true"], .disabled{ opacity:.6; pointer-events:none; }
 
 /* Ensure card images always crop consistently */
 .lead-card { position:relative; overflow:hidden; }
 .lead-bg   { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .top-thumb { width:100%; height:100%; object-fit:cover; display:block; }
 .card-img  { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
+
+/* === STEP 1: Muted/meta clarity === */
+.muted, .a-byline, .card-meta, .top-meta, #active-filter {
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
