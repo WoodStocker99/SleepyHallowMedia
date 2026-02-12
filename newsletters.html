@@ -3,34 +3,42 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sleepy Hollow Media — All Newsletters</title>
 
+  <title>Sleepy Hallow Media — All Newsletters</title>
+  <link rel="canonical" href="https://example.com/newsletters.html" />
+
+  <!-- Favicon -->
   <link rel="icon" href="favicon.ico" sizes="any" />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
 
-  <link rel="stylesheet" href="styles.css?v=4.7" />
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css?v=5.1" />
 
-  <!-- Optional OG defaults for the list page -->
+  <!-- Open Graph / Twitter -->
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Sleepy Hollow Media" />
-  <meta property="og:title" content="Sleepy Hollow Media — Newsletters" />
+  <meta property="og:site_name" content="Sleepy Hallow Media" />
+  <meta property="og:title" content="Sleepy Hallow Media — Newsletters" />
   <meta property="og:description" content="Browse all issues and stories." />
-  <meta property="og:image" content="https://woodstocker99.github.io/SleepyHallowMedia/assets/social-default.jpg" />
-  <meta property="og:url" content="https://woodstocker99.github.io/SleepyHallowMedia/newsletters.html" />
-
+  <meta property="og:image" content="assets/social-default.jpg" />
+  <meta property="og:url" content="https://example.com/newsletters.html" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Sleepy Hollow Media — Newsletters" />
+  <meta name="twitter:title" content="Sleepy Hallow Media — Newsletters" />
   <meta name="twitter:description" content="Browse all issues and stories." />
-  <meta name="twitter:image" content="https://woodstocker99.github.io/SleepyHallowMedia/assets/social-default.jpg" />
+  <meta name="twitter:image" content="assets/social-default.jpg" />
 
+  <!-- Markdown + Sanitizer (must load before app script) -->
   <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
-  <script defer src="script.js?v=4.7"></script>
+
+  <!-- App script -->
+  <script defer src="script.js?v=5.1"></script>
 </head>
 <body data-page="list">
+  <!-- Skip link -->
   <a class="skip-link" href="#main">Skip to content</a>
 
   <!-- Topbar -->
@@ -42,7 +50,8 @@
         <a class="top-link" href="newsletters.html?tag=Opinion">Opinion</a>
       </div>
 
-      <form id="site-search" class="top-search" action="newsletters.html" method="get">
+      <!-- Universal search -->
+      <form id="site-search" class="top-search" action="newsletters.html" method="get" role="search">
         <label for="q" class="sr-only">Search</label>
         <input id="q" name="q" type="search" placeholder="Search…" autocomplete="off" />
         <button class="btn" type="submit" aria-label="Search">Search</button>
@@ -50,34 +59,41 @@
     </div>
   </div>
 
+  <!-- Header -->
   <header class="site-header" role="banner">
     <div class="wrap header-row">
       <a class="brand" href="index.html">
         <img class="brand-mark" src="assets/logo.png" alt="" />
-        <span class="brand-name">Sleepy Hollow Media</span>
+        <span class="brand-name">Sleepy Hallow Media</span>
       </a>
+
       <nav class="primary-nav" aria-label="Primary">
         <a data-nav="home" href="index.html">Home</a>
         <a data-nav="newsletters" href="newsletters.html">Newsletters</a>
       </nav>
+
       <div class="header-tools">
-        <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Toggle dark mode" aria-pressed="false">
+        <button id="theme-toggle" class="theme-toggle" type="button"
+                aria-label="Toggle dark mode" aria-pressed="false">
           <span class="theme-icon" aria-hidden="true">🌙</span>
         </button>
+
         <button class="nav-toggle" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">☰</button>
       </div>
     </div>
+
     <nav id="mobile-menu" class="mobile-menu" aria-label="Mobile">
       <a data-nav="home" href="index.html">Home</a>
       <a data-nav="newsletters" href="newsletters.html">Newsletters</a>
     </nav>
   </header>
 
+  <!-- List page -->
   <main class="wrap list-page" id="main" tabindex="-1">
     <h1 class="page-title">All Newsletters</h1>
 
     <div class="filter-row" role="region" aria-label="Filters">
-      <div id="active-filter" class="muted"></div>
+      <div id="active-filter" class="muted" role="status" aria-live="polite"></div>
 
       <div class="muted" style="margin-top:.6rem">Categories</div>
       <div id="category-chips" class="trend-tags" style="margin-top:.2rem;"></div>
@@ -86,15 +102,32 @@
       <div id="tag-cloud" class="trend-tags" style="margin-top:.2rem;"></div>
     </div>
 
-    <div id="news-list" class="cards-grid"></div>
+    <div id="news-list" class="cards-grid" role="list"></div>
   </main>
 
+  <!-- Footer -->
   <footer class="site-footer">
     <div class="wrap footer-grid">
-      <div class="copy muted">© <span id="year"></span> Sleepy Hollow Media</div>
+      <div>
+        <a class="brand" href="index.html">
+          <img class="brand-mark" src="assets/logo.png" alt="" />
+          <span class="brand-name">Sleepy Hallow Media</span>
+        </a>
+        <p class="muted">Independent reporting from the Hollow.</p>
+      </div>
+
+      <nav class="footer-links" aria-label="Footer">
+        <a href="newsletters.html">Latest</a>
+        <a href="#donate">Donate</a>
+        <a href="#subscribe">Subscribe</a>
+      </nav>
+
+      <div class="copy muted">© <span id="year"></span> Sleepy Hallow Media</div>
     </div>
   </footer>
 
-  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
