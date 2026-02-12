@@ -1,13 +1,14 @@
 /* Sleepy Hallow Media — Magazine Theme (v5.1)
-   - Restores Light(default)/Dark(toggle) theming expected by script.js
-   - Keeps centered layout, lead + right-rail, compact cards
-   - Includes overflow fixes and mobile refinements
+   - Light(default)/Dark(toggle) theming via html[data-theme="dark"]
+   - Centered layout, lead + right-rail front page
+   - Overflow fixes and resilient typography
+   - Compatible with script.js v5.1
 */
 
 /* ============================================================
    THEME TOKENS
    Light theme is default (:root). Dark theme overrides via
-   :root[data-theme="dark"] — this matches script.js toggling.
+   :root[data-theme="dark"] — matches script.js toggling.
    ============================================================ */
 
 /* ---------- Light tokens (default) ---------- */
@@ -249,7 +250,7 @@ a:focus-visible { outline: var(--ring); outline-offset: 2px; border-radius: 6px;
   .mobile-menu.active{ display:block; }
 }
 
-/* Theme toggle button */
+/* Theme toggle */
 .theme-toggle{
   display:inline-flex; align-items:center; justify-content:center;
   border:1px solid var(--border); background: var(--surface-2); color: var(--ink);
@@ -455,6 +456,7 @@ figcaption{ color: var(--muted); font-size:.9rem; margin-top:.3rem; }
 .site-footer{ margin-top: 28px; padding: 20px 0; background: var(--header-bg); border-top:1px solid var(--header-line); }
 .footer-grid{ display:flex; align-items:center; justify-content:space-between; gap: 16px; flex-wrap:wrap; }
 .footer-links{ display:flex; gap: 12px; flex-wrap:wrap; }
+.muted, .a-byline, .card-meta, .top-meta, #active-filter { color: var(--muted); font-size: .95rem; line-height: 1.5; }
 
 /* ============================================================
    RESILIENCE & RESPONSIVE
