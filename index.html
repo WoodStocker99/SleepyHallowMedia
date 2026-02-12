@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 
   <title>Sleepy Hallow Media — Independent Reporting</title>
-  <!-- Canonical -->
+
+  <!-- Canonical (update to your real origin when ready) -->
   <link rel="canonical" href="https://example.com/" />
 
   <!-- Favicon -->
@@ -17,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 
   <!-- Styles -->
-  <link rel="stylesheet" href="styles.css?v=5.1" />
+  <link rel="stylesheet" href="styles.css?v=5.2" />
 
   <!-- Open Graph / Twitter -->
   <meta property="og:type" content="website" />
@@ -36,7 +37,7 @@
   <script defer src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
 
   <!-- App script -->
-  <script defer src="script.js?v=5.1"></script>
+  <script defer src="script.js?v=5.2"></script>
 </head>
 <body>
   <!-- Skip link -->
@@ -52,7 +53,7 @@
       </div>
 
       <!-- Universal search -->
-      <form id="site-search" class="top-search" action="newsletters.html" method="get">
+      <form id="site-search" class="top-search" action="newsletters.html" method="get" role="search">
         <label for="q" class="sr-only">Search</label>
         <input id="q" name="q" type="search" placeholder="Search…" autocomplete="off" />
         <button class="btn" type="submit" aria-label="Search">Search</button>
@@ -88,7 +89,7 @@
     </nav>
   </header>
 
-  <!-- Trending TAGS -->
+  <!-- Trending -->
   <aside class="trending" aria-label="Trending tags">
     <div class="wrap trend-row">
       <strong class="trend-label">Trending:</strong>
@@ -96,9 +97,8 @@
     </div>
   </aside>
 
-  <!-- Magazine front page -->
+  <!-- Front Page -->
   <main id="main" class="wrap front" tabindex="-1">
-    <!-- Lead + Right rail -->
     <section class="lead-grid" aria-label="Lead story">
       <article id="lead-story" class="lead-card" role="article"></article>
 
@@ -107,7 +107,6 @@
       </div>
     </section>
 
-    <!-- Latest + Sidebar -->
     <section class="content-grid" aria-label="Latest">
       <div class="main-col">
         <h2 class="h-section">Latest</h2>
@@ -122,7 +121,7 @@
 
         <div class="side-panel signup" role="complementary" aria-label="Newsletter signup">
           <h3 class="h-side">Never miss a story</h3>
-          <p>Get the latest in your inbox. No spam.</p>
+          <p class="muted">Get the latest in your inbox. No spam.</p>
           <form onsubmit="return false" aria-disabled="true" title="Wire this later">
             <input type="email" placeholder="Email address" aria-label="Email address" disabled>
             <button class="btn" disabled>Subscribe</button>
@@ -150,6 +149,6 @@
       <div class="copy muted">© <span id="year"></span> Sleepy Hallow Media</div>
     </div>
   </footer>
-  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+  <script>document.getElementById("year").textContent = new Date().getFullYear();</script>
 </body>
 </html>
